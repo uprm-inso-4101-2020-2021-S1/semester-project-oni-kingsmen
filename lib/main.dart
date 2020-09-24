@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:password_app/password.dart';
 
-void main() {
-  runApp(MyApp());
 
+void main() {
+  createNewPassword('password', 'accountname', 'email@domain.com', 'Title');
+  createNewPassword('1234', 'hehe', 'el@dan.com', 'Taitle 2');
+  createNewPassword('12 64 10', '', '', 'The Safe');
+  runApp(MyApp());
 }
 
-List<Password> getPasswords(){
-  Password password1 = Password("password", "account", "email@domain.com", "my frist caocunt");
-  Password password2 = Password("aaaaaaa", "Fecees10", "lad@site.com", "Facebook");
-  Password password3 = Password("1234", "locomendez094", "guy@gmail.com", "Gmail");
-  Password password4 = Password("1234", "Bankerboy0000000", "man@site.com", "A Site");
-  Password password5 = Password("genjefekdckmerwkjolvrnjoevnj", "TheLegend47", "legend@heaven.com", "peeeeee.com");
+List<Password> passwordList = new List();
 
-  return [password1,password2,password3,password4,password5];
+List<Password> getPasswords() {
+  return passwordList;
+}
+
+void createNewPassword(String password, String account, String email, String main){
+  passwordList.add(Password(password,account,email,main));
 }
 
 class MyApp extends StatelessWidget {
@@ -40,19 +43,16 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(title: 'Password App'),
-
     );
   }
 }
 
-class SettingPage extends StatefulWidget{
-
+class SettingPage extends StatefulWidget {
   @override
   _SettingPageState createState() => _SettingPageState();
 }
 
-class _SettingPageState extends State<SettingPage>{
-
+class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
     // Scaffold is a layout for the major Material Components.
@@ -70,23 +70,23 @@ class _SettingPageState extends State<SettingPage>{
             ),
             ListTile(
               title: Text('Accounts'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyHomePage(title: 'Password App')),
+                  MaterialPageRoute(
+                      builder: (context) => MyHomePage(title: 'Password App')),
                 );
               },
             ),
             ListTile(
               title: Text('Settings'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SettingPage()),
                 );
               },
             ),
-
             ListTile(
               title: Text('Log Out'),
               onTap: () {
@@ -112,17 +112,167 @@ class _SettingPageState extends State<SettingPage>{
     );
   }
 }
-class NewPasswordPage extends StatefulWidget{
 
+class NewPasswordPage extends StatefulWidget {
   @override
   _NewPasswordPageState createState() => _NewPasswordPageState();
 }
 
-class _NewPasswordPageState extends State<NewPasswordPage>{
+class _NewPasswordPageState extends State<NewPasswordPage> {
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, dynamic> formData = {'main': null, 'password': null,'email': '', 'account': ''};
+  Widget _buildForm() {
+    return Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            _buildMainField(),
+            _buildPasswordField(),
+            _buildAccountField(),
+            _buildEmailField(),
+            _buildSubmitButton(),
+          ],
+        ));
+  }
+
+  Widget _buildPasswordField() {
+    bool _obscureText = true;
+    void _toggle() {
+      _obscureText = !_obscureText;
+    }
+    return Column(
+      children: [
+        new Text('Password',
+            style: new TextStyle(fontSize: 25.0)),
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new TextFormField(
+          decoration: new InputDecoration(
+            labelText: 'Password',
+            fillColor: Colors.white,
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(25.0),
+              borderSide: new BorderSide(),
+            ),
+          ),
+          obscureText: _obscureText,
+          onSaved: (password){
+            formData['password'] = password;
+          },
+          validator: (password) =>
+              password.length <= 0 ? 'Please enter a password.' : null,
+        ),
+        new IconButton(
+          icon: Icon(Icons.visibility),
+          onPressed: _toggle,
+        )
+      ],
+    );
+  }
+
+  Widget _buildEmailField() {
+    return Column(
+      children: [
+        new Text('Email (Optional)',
+            style: new TextStyle(fontSize: 25.0)),
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new TextFormField(
+          decoration: new InputDecoration(
+            fillColor: Colors.white,
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(25.0),
+              borderSide: new BorderSide(),
+            ),
+          ),
+          onSaved: (email){
+            formData['email'] = email;
+          },
+          validator: (email) {
+            if (email.length > 0 &&
+                !RegExp(r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
+                    .hasMatch(email)) {
+              return 'This is not a valid email';
+            } else {
+              return null;
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAccountField() {
+    return Column(
+      children: [
+        new Text('Account Name (Optional)',
+          style: new TextStyle(fontSize: 25.0)),
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new TextFormField(
+          decoration: new InputDecoration(
+            fillColor: Colors.white,
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(25.0),
+              borderSide: new BorderSide(),
+            ),
+          ),
+          onSaved: (account){
+            formData['account'] = account;
+          },
+        ),
+      ],
+    );
+  }
+  Widget _buildMainField() {
+    return Column(
+      children: [
+        new Text('Title',
+            style: new TextStyle(fontSize: 25.0)),
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new TextFormField(
+            decoration: new InputDecoration(
+              fillColor: Colors.white,
+              border: new OutlineInputBorder(
+                borderRadius: new BorderRadius.circular(25.0),
+                borderSide: new BorderSide(),
+              ),
+            ),
+            onSaved: (title){
+              formData['main'] = title;
+            },
+            validator: (title) =>
+                title.length <= 0 ? 'Please enter a Title' : null),
+      ],
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return RaisedButton(
+      onPressed: () {
+        _submitForm();
+      },
+      child: Text('Submit'),
+    );
+  }
+
+  void _submitForm() {
+    print('Submitting form');
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save(); //onSaved is called!
+      print(formData);
+      createNewPassword(formData['password'], formData['account'], formData['email'], formData['main']);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => MyHomePage(title: 'Password App')),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     // Scaffold is a layout for the major Material Components.
+
     return Scaffold(
       appBar: AppBar(
         title: Text('New Password Page'),
@@ -140,23 +290,23 @@ class _NewPasswordPageState extends State<NewPasswordPage>{
             ),
             ListTile(
               title: Text('Accounts'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyHomePage(title: 'Password App')),
+                  MaterialPageRoute(
+                      builder: (context) => MyHomePage(title: 'Password App')),
                 );
               },
             ),
             ListTile(
               title: Text('Settings'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SettingPage()),
                 );
               },
             ),
-
             ListTile(
               title: Text('Log Out'),
               onTap: () {
@@ -168,14 +318,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>{
         ),
       ),
       // body is the majority of the screen.
-      body: Center(
-        child: Text('new Password'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Add', // used by assistive technologies
-        child: Icon(Icons.add),
-        onPressed: null,
-      ),
+      body: _buildForm()
     );
   }
 }
@@ -192,16 +335,13 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-
   final String title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-
 class _MyHomePageState extends State<MyHomePage> {
-  List<Password> passwords = getPasswords();
 
   @override
   Widget build(BuildContext context) {
@@ -230,23 +370,23 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ListTile(
               title: Text('Accounts'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyHomePage(title: 'Password App')),
+                  MaterialPageRoute(
+                      builder: (context) => MyHomePage(title: 'Password App')),
                 );
               },
             ),
             ListTile(
               title: Text('Settings'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SettingPage()),
                 );
               },
             ),
-
             ListTile(
               title: Text('Log Out'),
               onTap: () {
@@ -258,9 +398,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       body: ListView.builder(
-        itemCount: passwords.length,
+        itemCount: passwordList.length,
         itemBuilder: (context, index) {
-          final passwordItem = passwords[index];
+          final passwordItem = passwordList[index];
 
           return ListTile(
             title: Text(passwordItem.main),
@@ -268,20 +408,19 @@ class _MyHomePageState extends State<MyHomePage> {
             trailing: IconButton(
               icon: Icon(Icons.menu),
               tooltip: 'Details',
-              onPressed: (){
+              onPressed: () {
                 Navigator.push(
                   context,
-
-                  MaterialPageRoute(builder: (context) => OldPasswordPage(passwordItem)),
+                  MaterialPageRoute(
+                      builder: (context) => OldPasswordPage(passwordItem)),
                 );
               },
-              ),
+            ),
           );
         },
-
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
+        onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => NewPasswordPage()),
@@ -297,20 +436,18 @@ class _MyHomePageState extends State<MyHomePage> {
 class OldPasswordPage extends StatefulWidget {
   Password password;
 
-  OldPasswordPage(Password password){
+  OldPasswordPage(Password password) {
     this.password = password;
   }
-
-
 
   @override
   _OldPasswordPageState createState() => _OldPasswordPageState(password);
 }
 
-class _OldPasswordPageState extends State<OldPasswordPage>{
+class _OldPasswordPageState extends State<OldPasswordPage> {
   Password password;
 
-  _OldPasswordPageState(Password password){
+  _OldPasswordPageState(Password password) {
     this.password = password;
   }
 
@@ -334,28 +471,26 @@ class _OldPasswordPageState extends State<OldPasswordPage>{
             ),
             ListTile(
               title: Text('Accounts'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyHomePage(title: 'Password App')),
+                  MaterialPageRoute(
+                      builder: (context) => MyHomePage(title: 'Password App')),
                 );
               },
             ),
             ListTile(
               title: Text('Settings'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SettingPage()),
                 );
               },
             ),
-
             ListTile(
               title: Text('Log Out'),
-              onTap: () {
-
-              },
+              onTap: () {},
             ),
           ],
         ),
@@ -376,7 +511,7 @@ class _OldPasswordPageState extends State<OldPasswordPage>{
             subtitle: Text(password.email),
           )
         ],
-       ),
+      ),
     );
   }
 }
