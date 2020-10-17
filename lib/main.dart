@@ -4,8 +4,9 @@ import 'package:password_app/password.dart';
 
 void main() {
   createNewPassword('password', 'accountname', 'email@domain.com', 'Title');
-  createNewPassword('1234', 'hehe', 'el@dan.com', 'Taitle 2');
-  createNewPassword('12 64 10', '', '', 'The Safe');
+  createNewPassword('1234', 'accountname2', 'email2@domain.com', 'Title 2');
+  createNewPassword('12 64 10', '', '', 'Sample Pin Code');
+  createNewPassword(generatePassword(20, 5, 5), generatePassword(20, 5, 5), '', 'Generated Password');
   generatePassword(20, 5, 5);
   generatePassword(10, 5, 5);
   generatePassword(9, 5, 5);
@@ -49,9 +50,51 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Password App'),
+      home: LoginPage(),
     );
   }
+}
+
+Drawer createDrawer(BuildContext context){
+  return new Drawer(
+    child: ListView(
+      // Important: Remove any padding from the ListView.
+      padding: EdgeInsets.zero,
+      children: <Widget>[
+        DrawerHeader(
+          child: Text('Hello Guy!'),
+          decoration: BoxDecoration(
+            color: Colors.blue,
+          ),
+        ),
+        ListTile(
+          title: Text('Accounts'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => HomePage()),
+            );
+          },
+        ),
+        ListTile(
+          title: Text('Settings'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SettingPage()),
+            );
+          },
+        ),
+        ListTile(
+          title: Text('Log Out'),
+          onTap: () {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+        ),
+      ],
+    ),
+  );
 }
 
 class SettingPage extends StatefulWidget {
@@ -64,46 +107,7 @@ class _SettingPageState extends State<SettingPage> {
   Widget build(BuildContext context) {
     // Scaffold is a layout for the major Material Components.
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              child: Text('Drawer Header'),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
-            ListTile(
-              title: Text('Accounts'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => MyHomePage(title: 'Password App')),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Settings'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingPage()),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Log Out'),
-              onTap: () {
-                // Update the state of the app.
-                // ...
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: createDrawer(context),
       appBar: AppBar(
         title: Text('Settings Page'),
       ),
@@ -119,6 +123,145 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 }
+
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+
+class _LoginPageState extends State<LoginPage> {
+  String masterUsername= "guy";
+  String masterPassword= "1234";
+
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, dynamic> formData = {
+    'username': null,
+    'password': null
+  };
+
+
+  // bool _obscureText;
+  final _usernamecontroller = TextEditingController();
+  final _passwordcontroller = TextEditingController();
+
+  // @override
+  // void initState() {
+  //   // _obscureText = false;
+  //   super.initState();
+  // }
+
+  Widget _buildForm() {
+    return Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            _buildUsernameField(),
+            _buildPasswordField(),
+            _buildSubmitButton(),
+          ],
+        ));
+  }
+
+  Widget _buildUsernameField() {
+    return Column(
+      children: [
+        new Text('Username',
+            style: new TextStyle(fontSize: 25.0)),
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new TextFormField(
+          decoration: new InputDecoration(
+            fillColor: Colors.white,
+            labelText: 'Enter Username...',
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(25.0),
+              borderSide: new BorderSide(),
+            ),
+          ),
+          controller: _usernamecontroller,
+          onSaved: (username) {
+            formData['username'] = username;
+          },
+          validator: (username) =>
+          username == masterUsername ? null : 'Incorrect Username',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Column(
+      children: [
+        new Text('Password', style: new TextStyle(fontSize: 25.0)),
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new TextFormField(
+          controller: _passwordcontroller,
+          decoration: new InputDecoration(
+            labelText: 'Enter Master Password...',
+            fillColor: Colors.white,
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(25.0),
+              borderSide: new BorderSide(),
+            ),
+            // suffixIcon: GestureDetector(
+            //   onTap: () {
+            //     setState(() {
+            //       _obscureText = !_obscureText;
+            //     });
+            //   },
+            //   child:
+            //   Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+            // ),
+          ),
+          // obscureText: _obscureText,
+          obscureText: true,
+          onSaved: (password) {
+            formData['password'] = password;
+          },
+          validator: (password) =>
+          password == masterPassword ? null : 'Incorrect Master Password',
+        )
+      ],
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return RaisedButton(
+      onPressed: () {
+        _submitForm();
+      },
+      child: Text('Login'),
+    );
+  }
+
+  void _submitForm() {
+    print('Submitting form');
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save(); //onSaved is called!
+      print(formData);
+      _passwordcontroller.text = '';
+      _usernamecontroller.text = '';
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => HomePage()),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Scaffold is a layout for the major Material Components.
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Login'),
+      ),
+      body: _buildForm(),
+    );
+  }
+}
+
 
 class NewPasswordPage extends StatefulWidget {
   @override
@@ -292,7 +435,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => MyHomePage(title: 'Password App')),
+            builder: (context) => HomePage()),
       );
     }
   }
@@ -305,54 +448,14 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         appBar: AppBar(
           title: Text('New Password Page'),
         ),
-        drawer: Drawer(
-          child: ListView(
-            // Important: Remove any padding from the ListView.
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                child: Text('Drawer Header'),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                ),
-              ),
-              ListTile(
-                title: Text('Accounts'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            MyHomePage(title: 'Password App')),
-                  );
-                },
-              ),
-              ListTile(
-                title: Text('Settings'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SettingPage()),
-                  );
-                },
-              ),
-              ListTile(
-                title: Text('Log Out'),
-                onTap: () {
-                  // Update the state of the app.
-                  // ...
-                },
-              ),
-            ],
-          ),
-        ),
+        drawer: createDrawer(context),
         // body is the majority of the screen.
         body: _buildForm());
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class HomePage extends StatefulWidget {
+  HomePage({Key key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -363,13 +466,11 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
-
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -382,48 +483,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text("Password App"),
       ),
-      drawer: Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              child: Text('Drawer Header'),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
-            ListTile(
-              title: Text('Accounts'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => MyHomePage(title: 'Password App')),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Settings'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingPage()),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Log Out'),
-              onTap: () {
-                // Update the state of the app.
-                // ...
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: createDrawer(context),
       body: ListView.builder(
         itemCount: passwordList.length,
         itemBuilder: (context, index) {
@@ -494,43 +556,7 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
       appBar: AppBar(
         title: Text(password.main),
       ),
-      drawer: Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              child: Text('Drawer Header'),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
-            ListTile(
-              title: Text('Accounts'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => MyHomePage(title: 'Password App')),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Settings'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingPage()),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Log Out'),
-              onTap: () {},
-            ),
-          ],
-        ),
-      ),
+      drawer: createDrawer(context),
       // body is the majority of the screen.
       body: ListView(
         children: [
