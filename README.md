@@ -1,16 +1,5 @@
-# password_app
+# Oni Kingsmen Password App
 
-passssss
+We will develop a mobile application that is designed to store passwords and other sensitive information that users would like to remember behind one master account. This application will also have the function to generate and store random passwords as it has been indicated before in the scope and span. This application will address the need for users that struggle to remember important, sensitive information or would like to add an extra layer of security to their accounts. This will be worked with the implementation of two main subsystems. These subsystems are the storage and fetch systems, which will work along the encryption algorithm to be able to store and fetch desired information. These systems will also work directly to the Database where all the information of a user will be securely stored.  Future developments would include adding extra features such as browser support, 2FA, security questions for individual passwords, biometric authentication, etc.
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

@@ -6,7 +6,8 @@ void main() {
   createNewPassword('password', 'accountname', 'email@domain.com', 'Title');
   createNewPassword('1234', 'accountname2', 'email2@domain.com', 'Title 2');
   createNewPassword('12 64 10', '', '', 'Sample Pin Code');
-  createNewPassword(generatePassword(20, 5, 5), generatePassword(20, 5, 5), '', 'Generated Password');
+  createNewPassword(generatePassword(20, 5, 5), generatePassword(20, 5, 5), '',
+      'Generated Password');
   generatePassword(20, 5, 5);
   generatePassword(10, 5, 5);
   generatePassword(9, 5, 5);
@@ -55,7 +56,30 @@ class MyApp extends StatelessWidget {
   }
 }
 
-Drawer createDrawer(BuildContext context){
+Future<String> createSecurityQuestion(BuildContext context) {
+  TextEditingController controller = new TextEditingController();
+
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("Security Question (Debug answer: abc"),
+        content: TextField(
+          controller: controller,
+        ),
+        actions: <Widget>[
+          MaterialButton(
+              child: Text("Submit"),
+              onPressed: () {
+                Navigator.of(context).pop(controller.text.toString());
+              })
+        ],
+      );
+    },
+  );
+}
+
+Drawer createDrawer(BuildContext context) {
   return new Drawer(
     child: ListView(
       // Important: Remove any padding from the ListView.
@@ -72,8 +96,7 @@ Drawer createDrawer(BuildContext context){
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) => HomePage()),
+              MaterialPageRoute(builder: (context) => HomePage()),
             );
           },
         ),
@@ -129,17 +152,12 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-
 class _LoginPageState extends State<LoginPage> {
-  String masterUsername= "guy";
-  String masterPassword= "1234";
+  String masterUsername = "guy";
+  String masterPassword = "1234";
 
   final _formKey = GlobalKey<FormState>();
-  final Map<String, dynamic> formData = {
-    'username': null,
-    'password': null
-  };
-
+  final Map<String, dynamic> formData = {'username': null, 'password': null};
 
   // bool _obscureText;
   final _usernamecontroller = TextEditingController();
@@ -167,13 +185,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildUsernameField() {
     return Column(
       children: [
-        new Text('Username',
-            style: new TextStyle(fontSize: 25.0)),
+        new Text('Username', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
           decoration: new InputDecoration(
             fillColor: Colors.white,
-            labelText: 'Enter Username...',
+            labelText: '(Debug: guy)',
             border: new OutlineInputBorder(
               borderRadius: new BorderRadius.circular(25.0),
               borderSide: new BorderSide(),
@@ -184,7 +201,7 @@ class _LoginPageState extends State<LoginPage> {
             formData['username'] = username;
           },
           validator: (username) =>
-          username == masterUsername ? null : 'Incorrect Username',
+              username == masterUsername ? null : 'Incorrect Username',
         ),
       ],
     );
@@ -198,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
         new TextFormField(
           controller: _passwordcontroller,
           decoration: new InputDecoration(
-            labelText: 'Enter Master Password...',
+            labelText: '(Debug: 1234)',
             fillColor: Colors.white,
             border: new OutlineInputBorder(
               borderRadius: new BorderRadius.circular(25.0),
@@ -220,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
             formData['password'] = password;
           },
           validator: (password) =>
-          password == masterPassword ? null : 'Incorrect Master Password',
+              password == masterPassword ? null : 'Incorrect Master Password',
         )
       ],
     );
@@ -244,8 +261,7 @@ class _LoginPageState extends State<LoginPage> {
       _usernamecontroller.text = '';
       Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => HomePage()),
       );
     }
   }
@@ -261,7 +277,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
 
 class NewPasswordPage extends StatefulWidget {
   @override
@@ -434,8 +449,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
           formData['email'], formData['main']);
       Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => HomePage()),
       );
     }
   }
@@ -536,6 +550,7 @@ class OldPasswordPage extends StatefulWidget {
 class _OldPasswordPageState extends State<OldPasswordPage> {
   Password password;
   bool _obscureText;
+  String securityAnswer = "abc";
   final _controller = TextEditingController();
 
   _OldPasswordPageState(Password password) {
@@ -570,20 +585,28 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
                 readOnly: true,
                 controller: _controller,
                 obscureText: _obscureText,
-                onTap: () {
-                  setState(() {
-                    _obscureText = !_obscureText;
-                  });
-                }),
+                ),
           ),
-          // new IconButton(
-          //     icon: Icon(Icons.visibility),
-          //     onPressed: (){
-          //       setState(() {
-          //         _obscureText = !_obscureText;
-          //       });
-          //     }
-          // ),
+          new IconButton(
+              icon: Icon(Icons.visibility),
+              onPressed: (){
+                if (_obscureText) {
+                  createSecurityQuestion(context).then((answer) {
+                    print(answer);
+                    if (answer == securityAnswer) {
+                      setState(() {
+                        _obscureText = false;
+                      });
+                    }
+                  });
+                }
+                else{
+                  setState(() {
+                    _obscureText = true;
+                  });
+                }
+              }
+          ),
           ListTile(
             title: Text("Email:"),
             subtitle: Text(password.email),
