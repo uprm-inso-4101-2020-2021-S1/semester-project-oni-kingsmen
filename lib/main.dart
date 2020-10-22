@@ -350,7 +350,9 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         new RaisedButton(
           child: new Text("Generate Password"),
           onPressed: () {
-            _controller.text = generatePassword(10, 3, 2);
+            passwordGeneratorPopup(context).then((generatedPassword){
+              _controller.text = generatedPassword;
+            });
           },
         )
       ],
