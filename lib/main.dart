@@ -1,30 +1,25 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:password_app/generator.dart';
 import 'package:password_app/password.dart';
 
 void main() {
-  createNewPassword('password', 'accountname', 'email@domain.com', 'Title');
-  createNewPassword('1234', 'accountname2', 'email2@domain.com', 'Title 2');
-  createNewPassword('12 64 10', '', '', 'Sample Pin Code');
-  createNewPassword(generatePassword(20, 5, 5), generatePassword(20, 5, 5), '',
-      'Generated Password');
-  generatePassword(20, 5, 5);
-  generatePassword(10, 5, 5);
-  generatePassword(9, 5, 5);
-  generatePassword(20, 0, 0);
-  generatePassword(5, 1, 5);
-  generatePassword(5, 1, 1);
   runApp(MyApp());
 }
 
 List<Password> passwordList = new List();
 
-List<Password> getPasswords() {
-  return passwordList;
-}
+// List<Password> getPasswords() {
+//   return passwordList;
+// }
 
 void createNewPassword(
     String password, String account, String email, String main) {
+  print("creating password with"+" main: "+main+" account: "+account+" password: "+password);
   passwordList.add(Password(password, account, email, main));
 }
 
@@ -51,7 +46,7 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: LoginPage(),
+      home: SignInPage(),
     );
   }
 }
@@ -147,14 +142,12 @@ class _SettingPageState extends State<SettingPage> {
   }
 }
 
-class LoginPage extends StatefulWidget {
+class SignInPage extends StatefulWidget {
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _SignInPageState createState() => _SignInPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  String masterUsername = "guy";
-  String masterPassword = "1234";
+class _SignInPageState extends State<SignInPage> {
 
   final _formKey = GlobalKey<FormState>();
   final Map<String, dynamic> formData = {'username': null, 'password': null};
@@ -162,12 +155,161 @@ class _LoginPageState extends State<LoginPage> {
   // bool _obscureText;
   final _usernamecontroller = TextEditingController();
   final _passwordcontroller = TextEditingController();
+  bool processing = false;
 
-  // @override
-  // void initState() {
-  //   // _obscureText = false;
-  //   super.initState();
-  // }
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
+
+  Future getData() async {
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/get.php';
+    http.Response response = await http.get(url);
+
+    var data = jsonDecode(response.body);
+    print(data.toString());
+  }
+
+  Future register() async {
+    setState(() {
+      processing = true;
+    });
+
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/signup.php';
+    var data = {
+      'user': _usernamecontroller.text,
+      'pass': _passwordcontroller.text,
+    };
+
+    var res = await http.post(url, body: data);
+
+    if (jsonDecode(res.body) == 'exists') {
+      Fluttertoast.showToast(
+          msg: "Account already exists", toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'created') {
+      Fluttertoast.showToast(
+          msg: "Account created", toastLength: Toast.LENGTH_SHORT);
+      _passwordcontroller.text = '';
+      _usernamecontroller.text = '';
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => HomePage()),
+      // );
+    } else {
+      Fluttertoast.showToast(msg: "failed", toastLength: Toast.LENGTH_SHORT);
+    }
+
+    setState(() {
+      processing = false;
+    });
+  }
+
+  Future login() async {
+    setState(() {
+      processing = true;
+    });
+
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/signin.php';
+    var data = {
+      'user': _usernamecontroller.text,
+      'pass': _passwordcontroller.text,
+    };
+
+    var res = await http.post(url, body: data);
+
+    print(jsonDecode(res.body));
+    if (jsonDecode(res.body) == 'false') {
+      Fluttertoast.showToast(
+          msg: "Incorrect Password", toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'not found') {
+      Fluttertoast.showToast(
+          msg: "Username not found, try creating a new account.", toastLength: Toast.LENGTH_SHORT);
+    } else  {
+      Fluttertoast.showToast(
+          msg: "Account found", toastLength: Toast.LENGTH_SHORT);
+      passwordList.clear();
+      var json=jsonDecode(res.body);
+      print(json);
+      _passwordcontroller.text = '';
+      _usernamecontroller.text = '';
+      getpasswords(json);
+
+    }
+
+    setState(() {
+      processing = false;
+    });
+  }
+
+  Future getpasswords(String userid) async {
+    setState(() {
+      processing = true;
+    });
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/getpasswords.php';
+    var data = {
+      'id': userid,
+    };
+    var res = await http.post(url, body: data);
+    List<dynamic> json = jsonDecode(res.body);
+    print(json);
+    setState(() {
+      processing = false;
+    });
+    if(json != null){
+      print("not null");
+      for(var password in json){
+        createNewPassword(password['password'], password['username'], password['email'], password['main']);
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    }
+
+
+  }
+
+  bool _signIn = true;
+  Widget boxUI() {
+    return Card(
+      elevation: 10.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+
+          FlatButton(
+            onPressed: () {
+              setState(() {
+                _signIn = true;
+              });
+            },
+            child: Text("SIGN IN",
+                style: new TextStyle(
+                  fontSize: 25.0,
+                  color: _signIn ? Colors.green : Colors.grey,
+                )),
+          ),
+
+          FlatButton(
+            onPressed: () {
+              setState(() {
+                _signIn = false;
+              });
+            },
+            child: Text("SIGN UP",
+                style: new TextStyle(
+                  fontSize: 25.0,
+                  color: !_signIn ? Colors.green : Colors.grey,
+                )),
+          )
+        ],
+      ),
+    );
+  }
 
   Widget _buildForm() {
     return Form(
@@ -175,6 +317,7 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            boxUI(),
             _buildUsernameField(),
             _buildPasswordField(),
             _buildSubmitButton(),
@@ -201,7 +344,8 @@ class _LoginPageState extends State<LoginPage> {
             formData['username'] = username;
           },
           validator: (username) =>
-              username == masterUsername ? null : 'Incorrect Username',
+              // username == masterUsername ? null : 'Incorrect Username',
+              username.length > 0 ? null : "enter",
         ),
       ],
     );
@@ -236,8 +380,8 @@ class _LoginPageState extends State<LoginPage> {
           onSaved: (password) {
             formData['password'] = password;
           },
-          validator: (password) =>
-              password == masterPassword ? null : 'Incorrect Master Password',
+          validator: (password) => password.length > 0 ? null : "enter",
+          //password == masterPassword ? null : 'Incorrect Master Password',
         )
       ],
     );
@@ -248,7 +392,11 @@ class _LoginPageState extends State<LoginPage> {
       onPressed: () {
         _submitForm();
       },
-      child: Text('Login'),
+      child: processing == false
+          ? Text('Login')
+          : CircularProgressIndicator(
+              backgroundColor: Colors.green,
+            ),
     );
   }
 
@@ -257,12 +405,11 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save(); //onSaved is called!
       print(formData);
-      _passwordcontroller.text = '';
-      _usernamecontroller.text = '';
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
+      if (!_signIn){
+        register();
+      } else{
+        login();
+      }
     }
   }
 
@@ -350,7 +497,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         new RaisedButton(
           child: new Text("Generate Password"),
           onPressed: () {
-            passwordGeneratorPopup(context).then((generatedPassword){
+            passwordGeneratorPopup(context).then((generatedPassword) {
               _controller.text = generatedPassword;
             });
           },
@@ -473,20 +620,18 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
 class HomePage extends StatefulWidget {
   HomePage({Key key}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+    });
+  }
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -584,14 +729,14 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
           ListTile(
             title: Text("Password:"),
             subtitle: TextField(
-                readOnly: true,
-                controller: _controller,
-                obscureText: _obscureText,
-                ),
+              readOnly: true,
+              controller: _controller,
+              obscureText: _obscureText,
+            ),
           ),
           new IconButton(
               icon: Icon(Icons.visibility),
-              onPressed: (){
+              onPressed: () {
                 if (_obscureText) {
                   createSecurityQuestion(context).then((answer) {
                     print(answer);
@@ -601,14 +746,12 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
                       });
                     }
                   });
-                }
-                else{
+                } else {
                   setState(() {
                     _obscureText = true;
                   });
                 }
-              }
-          ),
+              }),
           ListTile(
             title: Text("Email:"),
             subtitle: Text(password.email),
