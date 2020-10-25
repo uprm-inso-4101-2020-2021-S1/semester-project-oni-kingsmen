@@ -491,8 +491,16 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
           onSaved: (password) {
             formData['password'] = password;
           },
-          validator: (password) =>
-              password.length <= 0 ? 'Please enter a password.' : null,
+          validator: (password) {
+            if(password.length <= 0) {
+              return 'Please enter a password.';
+            }
+            else if(password.length > 128) {
+              return 'Max Password Size: 128';
+            }
+            return null;
+          }
+
         ),
         new RaisedButton(
           child: new Text("Generate Password"),
