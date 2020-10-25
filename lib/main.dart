@@ -12,6 +12,7 @@ void main() {
 }
 
 List<Password> passwordList = new List();
+int userID = 0;
 
 // List<Password> getPasswords() {
 //   return passwordList;
@@ -19,7 +20,13 @@ List<Password> passwordList = new List();
 
 void createNewPassword(
     String password, String account, String email, String main) {
-  print("creating password with"+" main: "+main+" account: "+account+" password: "+password);
+  print("creating password with" +
+      " main: " +
+      main +
+      " account: " +
+      account +
+      " password: " +
+      password);
   passwordList.add(Password(password, account, email, main));
 }
 
@@ -49,6 +56,30 @@ class MyApp extends StatelessWidget {
       home: SignInPage(),
     );
   }
+}
+
+Future<bool> onBackPressed(BuildContext context) async {
+  return showDialog(
+    context: context,
+    builder: (context) => new AlertDialog(
+      title: new Text('You are about to log out.'),
+      content: new Text('Are you sure?'),
+      actions: <Widget>[
+        new GestureDetector(
+          onTap: () => Navigator.of(context).pop(false),
+          child: Text("NO"),
+        ),
+        SizedBox(height: 16),
+        new GestureDetector(
+          onTap: () {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+          child: Text("YES"),
+        ),
+      ],
+    ),
+  ) ??
+      false;
 }
 
 Future<String> createSecurityQuestion(BuildContext context) {
@@ -89,6 +120,8 @@ Drawer createDrawer(BuildContext context) {
         ListTile(
           title: Text('Accounts'),
           onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => HomePage()),
@@ -98,6 +131,8 @@ Drawer createDrawer(BuildContext context) {
         ListTile(
           title: Text('Settings'),
           onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => SettingPage()),
@@ -107,12 +142,74 @@ Drawer createDrawer(BuildContext context) {
         ListTile(
           title: Text('Log Out'),
           onTap: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            // Navigator.of(context).popUntil((route) => route.isFirst);
+            onBackPressed(context);
           },
         ),
       ],
     ),
   );
+}
+
+Drawer createPasswordDrawer(BuildContext context) {
+  return new Drawer(
+    child: ListView(
+      // Important: Remove any padding from the ListView.
+      padding: EdgeInsets.zero,
+      children: <Widget>[
+        DrawerHeader(
+          child: Text('Hello Guy!'),
+          decoration: BoxDecoration(
+            color: Colors.blue,
+          ),
+        ),
+        ListTile(
+          title: Text('Accounts'),
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          },
+        ),
+        ListTile(
+          title: Text('Settings'),
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SettingPage()),
+            );
+          },
+        ),
+        ListTile(
+          title: Text('Log Out'),
+          onTap: () {
+            // Navigator.of(context).popUntil((route) => route.isFirst);
+            onBackPressed(context);
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+class BlankPage extends StatefulWidget {
+  @override
+  _BlankPageState createState() => _BlankPageState();
+}
+
+class _BlankPageState extends State<BlankPage> {
+  @override
+  Widget build(BuildContext context) {
+    // Scaffold is a layout for the major Material Components.
+    return Scaffold();
+  }
 }
 
 class SettingPage extends StatefulWidget {
@@ -124,19 +221,22 @@ class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
     // Scaffold is a layout for the major Material Components.
-    return Scaffold(
-      drawer: createDrawer(context),
-      appBar: AppBar(
-        title: Text('Settings Page'),
-      ),
-      // body is the majority of the screen.
-      body: Center(
-        child: Text('Settings'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Add', // used by assistive technologies
-        child: Icon(Icons.airline_seat_recline_extra),
-        onPressed: null,
+    return WillPopScope(
+      onWillPop: () => onBackPressed(context),
+      child: Scaffold(
+        drawer: createDrawer(context),
+        appBar: AppBar(
+          title: Text('Settings Page'),
+        ),
+        // body is the majority of the screen.
+        body: Center(
+          child: Text('Settings'),
+        ),
+        floatingActionButton: FloatingActionButton(
+          tooltip: 'Add', // used by assistive technologies
+          child: Icon(Icons.airline_seat_recline_extra),
+          onPressed: null,
+        ),
       ),
     );
   }
@@ -148,7 +248,6 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-
   final _formKey = GlobalKey<FormState>();
   final Map<String, dynamic> formData = {'username': null, 'password': null};
 
@@ -224,17 +323,18 @@ class _SignInPageState extends State<SignInPage> {
           msg: "Incorrect Password", toastLength: Toast.LENGTH_SHORT);
     } else if (jsonDecode(res.body) == 'not found') {
       Fluttertoast.showToast(
-          msg: "Username not found, try creating a new account.", toastLength: Toast.LENGTH_SHORT);
-    } else  {
+          msg: "Username not found, try creating a new account.",
+          toastLength: Toast.LENGTH_SHORT);
+    } else {
       Fluttertoast.showToast(
           msg: "Account found", toastLength: Toast.LENGTH_SHORT);
       passwordList.clear();
-      var json=jsonDecode(res.body);
+      var json = jsonDecode(res.body);
       print(json);
+      userID = int.parse(json);
       _passwordcontroller.text = '';
       _usernamecontroller.text = '';
-      getpasswords(json);
-
+      getpasswords(userID.toString());
     }
 
     setState(() {
@@ -256,21 +356,25 @@ class _SignInPageState extends State<SignInPage> {
     setState(() {
       processing = false;
     });
-    if(json != null){
+    if (json != null) {
       print("not null");
-      for(var password in json){
-        createNewPassword(password['password'], password['username'], password['email'], password['main']);
+      for (var password in json) {
+        createNewPassword(password['password'], password['username'],
+            password['email'], password['main']);
       }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => BlankPage()),
+      );
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
       );
     }
-
-
   }
 
   bool _signIn = true;
+
   Widget boxUI() {
     return Card(
       elevation: 10.0,
@@ -280,7 +384,6 @@ class _SignInPageState extends State<SignInPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-
           FlatButton(
             onPressed: () {
               setState(() {
@@ -293,7 +396,6 @@ class _SignInPageState extends State<SignInPage> {
                   color: _signIn ? Colors.green : Colors.grey,
                 )),
           ),
-
           FlatButton(
             onPressed: () {
               setState(() {
@@ -359,7 +461,7 @@ class _SignInPageState extends State<SignInPage> {
         new TextFormField(
           controller: _passwordcontroller,
           decoration: new InputDecoration(
-            labelText: '(Debug: 1234)',
+            labelText: '(Debug: 123)',
             fillColor: Colors.white,
             border: new OutlineInputBorder(
               borderRadius: new BorderRadius.circular(25.0),
@@ -405,9 +507,9 @@ class _SignInPageState extends State<SignInPage> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save(); //onSaved is called!
       print(formData);
-      if (!_signIn){
+      if (!_signIn) {
         register();
-      } else{
+      } else {
         login();
       }
     }
@@ -432,6 +534,12 @@ class NewPasswordPage extends StatefulWidget {
 
 class _NewPasswordPageState extends State<NewPasswordPage> {
   final _formKey = GlobalKey<FormState>();
+  bool processing = false;
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _mainController = TextEditingController();
+
   final Map<String, dynamic> formData = {
     'main': null,
     'password': null,
@@ -455,7 +563,6 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   }
 
   bool _obscureText;
-  final _controller = TextEditingController();
 
   @override
   void initState() {
@@ -469,44 +576,41 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         new Text('Password', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
-          controller: _controller,
-          decoration: new InputDecoration(
-            labelText: 'Password',
-            fillColor: Colors.white,
-            border: new OutlineInputBorder(
-              borderRadius: new BorderRadius.circular(25.0),
-              borderSide: new BorderSide(),
+            controller: _passwordController,
+            decoration: new InputDecoration(
+              labelText: 'Password',
+              fillColor: Colors.white,
+              border: new OutlineInputBorder(
+                borderRadius: new BorderRadius.circular(25.0),
+                borderSide: new BorderSide(),
+              ),
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+                child: Icon(
+                    _obscureText ? Icons.visibility : Icons.visibility_off),
+              ),
             ),
-            suffixIcon: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _obscureText = !_obscureText;
-                });
-              },
-              child:
-                  Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
-            ),
-          ),
-          obscureText: _obscureText,
-          onSaved: (password) {
-            formData['password'] = password;
-          },
-          validator: (password) {
-            if(password.length <= 0) {
-              return 'Please enter a password.';
-            }
-            else if(password.length > 128) {
-              return 'Max Password Size: 128';
-            }
-            return null;
-          }
-
-        ),
+            obscureText: _obscureText,
+            onSaved: (password) {
+              formData['password'] = password;
+            },
+            validator: (password) {
+              if (password.length <= 0) {
+                return 'Please enter a password.';
+              } else if (password.length > 128) {
+                return 'Max Password Size: 128';
+              }
+              return null;
+            }),
         new RaisedButton(
           child: new Text("Generate Password"),
           onPressed: () {
             passwordGeneratorPopup(context).then((generatedPassword) {
-              _controller.text = generatedPassword;
+              _passwordController.text = generatedPassword;
             });
           },
         )
@@ -520,6 +624,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         new Text('Email (Optional)', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
+          controller: _emailController,
           decoration: new InputDecoration(
             fillColor: Colors.white,
             border: new OutlineInputBorder(
@@ -528,12 +633,14 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
             ),
           ),
           onSaved: (email) {
-            formData['email'] = email;
+            _emailController.text = _emailController.text.toLowerCase();
+            formData['email'] = email.toLowerCase();
           },
           validator: (email) {
+            _emailController.text = _emailController.text.toLowerCase();
             if (email.length > 0 &&
                 !RegExp(r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
-                    .hasMatch(email)) {
+                    .hasMatch(email.toLowerCase())) {
               return 'This is not a valid email';
             } else {
               return null;
@@ -551,6 +658,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
             style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
+          controller: _usernameController,
           decoration: new InputDecoration(
             fillColor: Colors.white,
             border: new OutlineInputBorder(
@@ -572,6 +680,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         new Text('Title', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
+            controller: _mainController,
             decoration: new InputDecoration(
               fillColor: Colors.white,
               border: new OutlineInputBorder(
@@ -602,13 +711,55 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save(); //onSaved is called!
       print(formData);
-      createNewPassword(formData['password'], formData['account'],
-          formData['email'], formData['main']);
+      addPasswordToDB();
+    }
+  }
+
+  Future addPasswordToDB() async {
+    setState(() {
+      processing = true;
+    });
+
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/createpassword.php';
+    var data = {
+      'id': userID.toString(),
+      'main': _mainController.text,
+      'pass': _passwordController.text,
+      'email': _emailController.text,
+      'username': _usernameController.text,
+      'notes': '',
+    };
+
+    var res = await http.post(url, body: data);
+
+    if (jsonDecode(res.body) == 'exists') {
+      Fluttertoast.showToast(
+          msg: "Given Title and Password already exist.",
+          toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'created') {
+      Fluttertoast.showToast(
+          msg: "New Password Added", toastLength: Toast.LENGTH_SHORT);
+      createNewPassword(_passwordController.text, _usernameController.text,
+          _emailController.text = '', _mainController.text);
+      _passwordController.text = '';
+      _usernameController.text = '';
+      _emailController.text = '';
+      _mainController.text = '';
+
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
       );
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed to create password.", toastLength: Toast.LENGTH_SHORT);
     }
+
+    setState(() {
+      processing = false;
+    });
   }
 
   @override
@@ -619,7 +770,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         appBar: AppBar(
           title: Text('New Password Page'),
         ),
-        drawer: createDrawer(context),
+        drawer: createPasswordDrawer(context),
         // body is the majority of the screen.
         body: _buildForm());
   }
@@ -633,60 +784,66 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   @override
   void initState() {
     super.initState();
-    setState(() {
-    });
+    setState(() {});
   }
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text("Password App"),
-      ),
-      drawer: createDrawer(context),
-      body: ListView.builder(
-        itemCount: passwordList.length,
-        itemBuilder: (context, index) {
-          final passwordItem = passwordList[index];
 
-          return ListTile(
-            title: Text(passwordItem.main),
-            subtitle: Text(passwordItem.account),
-            trailing: IconButton(
-              icon: Icon(Icons.menu),
-              tooltip: 'Details',
-              onPressed: () {
+
+
+    return WillPopScope(
+      onWillPop: () => onBackPressed(context),
+      child: Scaffold(
+        appBar: AppBar(
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: Text("Password App"),
+        ),
+        drawer: createDrawer(context),
+        body: ListView.builder(
+          itemCount: passwordList.length,
+          itemBuilder: (context, index) {
+            final passwordItem = passwordList[index];
+
+            return ListTile(
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => OldPasswordPage(passwordItem)),
                 );
               },
-            ),
-          );
-        },
+              title: Text(passwordItem.main),
+              subtitle: Text(passwordItem.account),
+              trailing: IconButton(
+                icon: Icon(Icons.menu),
+                tooltip: 'Details',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => OldPasswordPage(passwordItem)),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NewPasswordPage()),
+            );
+          },
+          tooltip: 'Increment',
+          child: Icon(Icons.add),
+        ), // This trailing comma makes auto-formatting nicer for build methods.
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NewPasswordPage()),
-          );
-        },
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
@@ -726,7 +883,7 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
       appBar: AppBar(
         title: Text(password.main),
       ),
-      drawer: createDrawer(context),
+      drawer: createPasswordDrawer(context),
       // body is the majority of the screen.
       body: ListView(
         children: [
