@@ -42,8 +42,8 @@ Future<String> passwordGeneratorPopup(BuildContext context) {
               if (size.length <= 0 || int.parse(size) < 0) {
                 return "Please enter a valid password size.";
               }
-              if (int.parse(size) > 40) {
-                return "Password size cannot exceed 40";
+              if (int.parse(size) > 128) {
+                return "Max Password Size: 128";
               }
 
               specialCharCount = 0;
