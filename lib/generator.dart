@@ -155,6 +155,7 @@ Future<String> passwordGeneratorPopup(BuildContext context) {
       print(formData);
       return true;
     }
+    return false;
   }
 
   return showDialog(
@@ -171,7 +172,6 @@ Future<String> passwordGeneratorPopup(BuildContext context) {
                   Navigator.of(context).pop(generatePassword(formData["size"],
                       formData["numberCount"], formData["symbolCount"]));
                 }
-                ;
               })
         ],
       );

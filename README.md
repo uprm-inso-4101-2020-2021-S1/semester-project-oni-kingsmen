@@ -1,4 +1,5 @@
-# Oni Kingsmen Password App
+Oni Kingsmen Password App
+=========================
 
 We will develop a mobile application that is designed to store passwords and other sensitive information that users would like to remember 
 behind one master account. This application will also have the function to generate and store random passwords as it has been indicated 

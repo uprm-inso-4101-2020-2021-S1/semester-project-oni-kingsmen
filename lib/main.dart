@@ -18,8 +18,8 @@ int userID = 0;
 //   return passwordList;
 // }
 
-void createNewPassword(
-    String password, String account, String email, String main) {
+void createNewPassword(String password, String account, String email,
+    String main) {
   print("creating password with" +
       " main: " +
       main +
@@ -61,7 +61,8 @@ class MyApp extends StatelessWidget {
 Future<bool> onBackPressed(BuildContext context) async {
   return showDialog(
     context: context,
-    builder: (context) => new AlertDialog(
+    builder: (context) =>
+    new AlertDialog(
       title: new Text('You are about to log out.'),
       content: new Text('Are you sure?'),
       actions: <Widget>[
@@ -132,7 +133,6 @@ Drawer createDrawer(BuildContext context) {
           title: Text('Settings'),
           onTap: () {
             Navigator.of(context).pop();
-            Navigator.of(context).pop();
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => SettingPage()),
@@ -142,7 +142,6 @@ Drawer createDrawer(BuildContext context) {
         ListTile(
           title: Text('Log Out'),
           onTap: () {
-            // Navigator.of(context).popUntil((route) => route.isFirst);
             onBackPressed(context);
           },
         ),
@@ -180,7 +179,6 @@ Drawer createPasswordDrawer(BuildContext context) {
           onTap: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
-            Navigator.of(context).pop();
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => SettingPage()),
@@ -190,7 +188,6 @@ Drawer createPasswordDrawer(BuildContext context) {
         ListTile(
           title: Text('Log Out'),
           onTap: () {
-            // Navigator.of(context).popUntil((route) => route.isFirst);
             onBackPressed(context);
           },
         ),
@@ -221,22 +218,56 @@ class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
     // Scaffold is a layout for the major Material Components.
-    return WillPopScope(
-      onWillPop: () => onBackPressed(context),
-      child: Scaffold(
-        drawer: createDrawer(context),
-        appBar: AppBar(
-          title: Text('Settings Page'),
+    return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              child: Text('Hello Guy!'),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+            ),
+            ListTile(
+              title: Text('Accounts'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
+              },
+            ),
+            ListTile(
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              title: Text('Log Out'),
+              onTap: () {
+                onBackPressed(context);
+              },
+            ),
+          ],
         ),
-        // body is the majority of the screen.
-        body: Center(
-          child: Text('Settings'),
-        ),
-        floatingActionButton: FloatingActionButton(
-          tooltip: 'Add', // used by assistive technologies
-          child: Icon(Icons.airline_seat_recline_extra),
-          onPressed: null,
-        ),
+      ),
+      appBar: AppBar(
+        title: Text('Settings Page'),
+      ),
+      // body is the majority of the screen.
+      body: Center(
+        child: Text('Settings'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Add', // used by assistive technologies
+        child: Icon(Icons.airline_seat_recline_extra),
+        onPressed: null,
       ),
     );
   }
@@ -375,7 +406,7 @@ class _SignInPageState extends State<SignInPage> {
 
   bool _signIn = true;
 
-  Widget boxUI() {
+  Widget _loginBoxUI() {
     return Card(
       elevation: 10.0,
       shape: RoundedRectangleBorder(
@@ -419,7 +450,7 @@ class _SignInPageState extends State<SignInPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            boxUI(),
+            _loginBoxUI(),
             _buildUsernameField(),
             _buildPasswordField(),
             _buildSubmitButton(),
@@ -430,6 +461,7 @@ class _SignInPageState extends State<SignInPage> {
   Widget _buildUsernameField() {
     return Column(
       children: [
+        new Padding(padding: EdgeInsets.only(top: 15.0)),
         new Text('Username', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
@@ -446,8 +478,8 @@ class _SignInPageState extends State<SignInPage> {
             formData['username'] = username;
           },
           validator: (username) =>
-              // username == masterUsername ? null : 'Incorrect Username',
-              username.length > 0 ? null : "enter",
+          // username == masterUsername ? null : 'Incorrect Username',
+          username.length > 0 ? null : "enter",
         ),
       ],
     );
@@ -456,6 +488,7 @@ class _SignInPageState extends State<SignInPage> {
   Widget _buildPasswordField() {
     return Column(
       children: [
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
         new Text('Password', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
@@ -497,8 +530,8 @@ class _SignInPageState extends State<SignInPage> {
       child: processing == false
           ? Text('Login')
           : CircularProgressIndicator(
-              backgroundColor: Colors.green,
-            ),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 
@@ -551,7 +584,8 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     return Form(
         key: _formKey,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+
           children: <Widget>[
             _buildMainField(),
             _buildPasswordField(),
@@ -573,8 +607,9 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   Widget _buildPasswordField() {
     return Column(
       children: [
-        new Text('Password', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Password:', style: new TextStyle(fontSize: 15.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
             controller: _passwordController,
             decoration: new InputDecoration(
@@ -621,11 +656,13 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   Widget _buildEmailField() {
     return Column(
       children: [
-        new Text('Email (Optional)', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Email (Optional):', style: new TextStyle(fontSize: 15.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
           controller: _emailController,
           decoration: new InputDecoration(
+            labelText: 'Email (Optional)',
             fillColor: Colors.white,
             border: new OutlineInputBorder(
               borderRadius: new BorderRadius.circular(25.0),
@@ -633,15 +670,14 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
             ),
           ),
           onSaved: (email) {
-            _emailController.text = _emailController.text.toLowerCase();
-            formData['email'] = email.toLowerCase();
+            formData['email'] = email;
           },
           validator: (email) {
-            _emailController.text = _emailController.text.toLowerCase();
             if (email.length > 0 &&
-                !RegExp(r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
-                    .hasMatch(email.toLowerCase())) {
-              return 'This is not a valid email';
+                !RegExp(
+                    r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
+                    .hasMatch(email)) {
+              return 'This is an invalid email.';
             } else {
               return null;
             }
@@ -654,13 +690,16 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   Widget _buildAccountField() {
     return Column(
       children: [
-        new Text('Account Name (Optional)',
-            style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Account Name (Optional):',
+            textAlign: TextAlign.left,
+            style: new TextStyle(fontSize: 15.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
           controller: _usernameController,
           decoration: new InputDecoration(
             fillColor: Colors.white,
+            labelText: 'Account Name (Optional)',
             border: new OutlineInputBorder(
               borderRadius: new BorderRadius.circular(25.0),
               borderSide: new BorderSide(),
@@ -677,11 +716,13 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   Widget _buildMainField() {
     return Column(
       children: [
-        new Text('Title', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Title:', style: new TextStyle(fontSize: 15.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
             controller: _mainController,
             decoration: new InputDecoration(
+              labelText: 'Title',
               fillColor: Colors.white,
               border: new OutlineInputBorder(
                 borderRadius: new BorderRadius.circular(25.0),
@@ -692,18 +733,22 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
               formData['main'] = title;
             },
             validator: (title) =>
-                title.length <= 0 ? 'Please enter a Title' : null),
+            title.length <= 0 ? 'Please enter a title.' : null),
       ],
     );
   }
 
   Widget _buildSubmitButton() {
-    return RaisedButton(
-      onPressed: () {
-        _submitForm();
-      },
-      child: Text('Submit'),
-    );
+    if (processing == false)
+      return RaisedButton(
+        onPressed: () {
+          _submitForm();
+        },
+        child: Text('Submit'),
+      );
+    else {
+      return CircularProgressIndicator(backgroundColor: Colors.green,);
+    }
   }
 
   void _submitForm() {
@@ -740,7 +785,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       Fluttertoast.showToast(
           msg: "New Password Added", toastLength: Toast.LENGTH_SHORT);
       createNewPassword(_passwordController.text, _usernameController.text,
-          _emailController.text = '', _mainController.text);
+          _emailController.text, _mainController.text);
       _passwordController.text = '';
       _usernameController.text = '';
       _emailController.text = '';
@@ -792,9 +837,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return WillPopScope(
       onWillPop: () => onBackPressed(context),
       child: Scaffold(
