@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Password App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -291,6 +292,8 @@ class _SignInPageState extends State<SignInPage> {
   @override
   void initState() {
     super.initState();
+    _obscureConfirmText = true;
+    _obscurePasswordText = true;
     getData();
   }
 
@@ -547,8 +550,10 @@ class _SignInPageState extends State<SignInPage> {
             formData['email'] = email;
           },
           validator: (email) {
-            if (email.length > 0 &&
-                !RegExp(r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
+            if(email.length <= 0){
+              return 'Please enter a valid email';
+            }
+            else if (!RegExp(r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
                     .hasMatch(email)) {
               return 'This is an invalid email.';
             } else {
@@ -560,6 +565,7 @@ class _SignInPageState extends State<SignInPage> {
     );
   }
 
+  bool _obscurePasswordText;
   Widget _buildPasswordField() {
     return Column(
       children: [
@@ -577,18 +583,18 @@ class _SignInPageState extends State<SignInPage> {
               borderRadius: new BorderRadius.circular(25.0),
               borderSide: new BorderSide(),
             ),
-            // suffixIcon: GestureDetector(
-            //   onTap: () {
-            //     setState(() {
-            //       _obscureText = !_obscureText;
-            //     });
-            //   },
-            //   child:
-            //   Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
-            // ),
+            suffixIcon: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _obscurePasswordText = !_obscurePasswordText;
+                });
+              },
+              child:
+              Icon(_obscurePasswordText ? Icons.visibility : Icons.visibility_off),
+            ),
           ),
           // obscureText: _obscureText,
-          obscureText: true,
+          obscureText: _obscurePasswordText,
           onSaved: (password) {
             formData['password'] = password;
           },
@@ -600,6 +606,7 @@ class _SignInPageState extends State<SignInPage> {
     );
   }
 
+  bool _obscureConfirmText;
   Widget _buildConfirmPasswordField() {
     return Column(
       children: [
@@ -615,21 +622,20 @@ class _SignInPageState extends State<SignInPage> {
               borderRadius: new BorderRadius.circular(25.0),
               borderSide: new BorderSide(),
             ),
-            // suffixIcon: GestureDetector(
-            //   onTap: () {
-            //     setState(() {
-            //       _obscureText = !_obscureText;
-            //     });
-            //   },
-            //   child:
-            //   Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
-            // ),
+            suffixIcon: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _obscureConfirmText = !_obscureConfirmText;
+                });
+              },
+              child:
+              Icon(_obscureConfirmText ? Icons.visibility : Icons.visibility_off),
+            ),
           ),
           // obscureText: _obscureText,
-          obscureText: true,
+          obscureText: _obscureConfirmText,
           validator: (password) =>
-              _confirmcontroller.text.trim() == _passwordcontroller.text.trim()
-                  ? null
+              _confirmcontroller.text == _passwordcontroller.text? null
                   : "Password does not equal master password given.",
           //password == masterPassword ? null : 'Incorrect Master Password',
         )
@@ -970,7 +976,11 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       processing = true;
     });
 
-    var url = 'http://oni-kingsmen-site.000webhostapp.com/editpassword.php';
+    var url = (password.main == _mainController.text
+        && password.password == _passwordController.text)?
+    'http://oni-kingsmen-site.000webhostapp.com/editoptionalpassword.php'
+        :'http://oni-kingsmen-site.000webhostapp.com/editpassword.php';
+
     var data = {
       'id': userID.toString(),
       'oldmain': password.main,
@@ -983,11 +993,14 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     };
 
     var res = await http.post(url, body: data);
-    print(jsonDecode(res.body));
-    if (jsonDecode(res.body) == false) {
+print(jsonDecode(res.body));
+    if (jsonDecode(res.body) == 'exists') {
+      Fluttertoast.showToast(
+          msg: "Given Title and Password already exist.", toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'no') {
       Fluttertoast.showToast(
           msg: "Failed to edit password.", toastLength: Toast.LENGTH_SHORT);
-    } else if (res.body == 'true') {
+    } else if (jsonDecode(res.body) == true) {
       Fluttertoast.showToast(
           msg: "Password Edited", toastLength: Toast.LENGTH_SHORT);
 
@@ -1025,7 +1038,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text('New Password Page'),
+          title: Text(password == null? 'New Password Page':'Edit Password'),
         ),
         drawer: createPasswordDrawer(context),
         // body is the majority of the screen.
