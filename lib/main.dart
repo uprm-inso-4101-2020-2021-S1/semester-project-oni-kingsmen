@@ -97,7 +97,7 @@ Future<String> createSecurityQuestion(BuildContext context) {
           MaterialButton(
               child: Text("Submit"),
               onPressed: () {
-                Navigator.of(context).pop(controller.text.toString());
+                Navigator.of(context).pop(controller.text.trim().toString());
               })
         ],
       );
@@ -306,14 +306,12 @@ class _SignInPageState extends State<SignInPage> {
     setState(() {
       processing = true;
     });
-
     var url = 'http://oni-kingsmen-site.000webhostapp.com/signup.php';
     var data = {
-      'user': _usernamecontroller.text,
-      'pass': _passwordcontroller.text,
-      'email': _emailcontroller.text.toLowerCase(),
+      'user': _usernamecontroller.text.trim(),
+      'pass': _passwordcontroller.text.trim(),
+      'email': _emailcontroller.text.trim().toLowerCase(),
     };
-
     var res = await http.post(url, body: data);
 
     if (jsonDecode(res.body) == 'email exists') {
@@ -333,10 +331,6 @@ class _SignInPageState extends State<SignInPage> {
       setState(() {
         _signIn = true;
       });
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => HomePage()),
-      // );
     } else {
       Fluttertoast.showToast(
           msg: "Failed to create account. Try again later.",
@@ -352,13 +346,11 @@ class _SignInPageState extends State<SignInPage> {
     setState(() {
       processing = true;
     });
-
     var url = 'http://oni-kingsmen-site.000webhostapp.com/signin.php';
     var data = {
-      'user': _usernamecontroller.text,
-      'pass': _passwordcontroller.text,
+      'user': _usernamecontroller.text.trim(),
+      'pass': _passwordcontroller.text.trim(),
     };
-
     var res = await http.post(url, body: data);
 
     print(jsonDecode(res.body));
@@ -367,7 +359,8 @@ class _SignInPageState extends State<SignInPage> {
           msg: "Incorrect Password", toastLength: Toast.LENGTH_SHORT);
     } else if (jsonDecode(res.body) == 'not found') {
       Fluttertoast.showToast(
-          msg: "Username not found, try creating a new account.",
+          msg: RegExp(r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
+              .hasMatch(_usernamecontroller.text.trim())? "Email not found, try creating a new account." : "Username not found, try logging in with your email.",
           toastLength: Toast.LENGTH_SHORT);
     } else {
       Fluttertoast.showToast(
@@ -524,8 +517,6 @@ class _SignInPageState extends State<SignInPage> {
             }
              return null;
           }
-              // username == masterUsername ? null : 'Incorrect Username',
-
         ),
       ],
     );
@@ -632,7 +623,7 @@ class _SignInPageState extends State<SignInPage> {
           // obscureText: _obscureText,
           obscureText: true,
           validator: (password) =>
-              _confirmcontroller.text == _passwordcontroller.text
+              _confirmcontroller.text.trim() == _passwordcontroller.text.trim()
                   ? null
                   : "Password does not equal master password given.",
           //password == masterPassword ? null : 'Incorrect Master Password',
@@ -670,6 +661,10 @@ class _SignInPageState extends State<SignInPage> {
   void _submitForm() {
     print('Submitting form');
     if (_formKey.currentState.validate()) {
+      _usernamecontroller.text = _usernamecontroller.text.trim();
+      _passwordcontroller.text = _passwordcontroller.text.trim();
+      _emailcontroller.text = _emailcontroller.text.trim();
+      _confirmcontroller.text = _confirmcontroller.text.trim();
       _formKey.currentState.save(); //onSaved is called!
       print(formData);
       if (!_signIn) {
@@ -899,10 +894,10 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     var url = 'http://oni-kingsmen-site.000webhostapp.com/createpassword.php';
     var data = {
       'id': userID.toString(),
-      'main': _mainController.text,
-      'pass': _passwordController.text,
-      'email': _emailController.text,
-      'username': _usernameController.text,
+      'main': _mainController.text.trim(),
+      'pass': _passwordController.text.trim(),
+      'email': _emailController.text.trim(),
+      'username': _usernameController.text.trim(),
       'notes': '',
     };
 
@@ -915,8 +910,8 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     } else if (jsonDecode(res.body) == 'created') {
       Fluttertoast.showToast(
           msg: "New Password Added", toastLength: Toast.LENGTH_SHORT);
-      createNewPassword(_passwordController.text, _usernameController.text,
-          _emailController.text, _mainController.text);
+      createNewPassword(_passwordController.text.trim(), _usernameController.text.trim(),
+          _emailController.text.trim(), _mainController.text.trim());
       _passwordController.text = '';
       _usernameController.text = '';
       _emailController.text = '';
