@@ -18,8 +18,8 @@ int userID = 0;
 //   return passwordList;
 // }
 
-void createNewPassword(String password, String account, String email,
-    String main) {
+void createNewPassword(
+    String password, String account, String email, String main) {
   print("creating password with" +
       " main: " +
       main +
@@ -60,26 +60,25 @@ class MyApp extends StatelessWidget {
 
 Future<bool> onBackPressed(BuildContext context) async {
   return showDialog(
-    context: context,
-    builder: (context) =>
-    new AlertDialog(
-      title: new Text('You are about to log out.'),
-      content: new Text('Are you sure?'),
-      actions: <Widget>[
-        new GestureDetector(
-          onTap: () => Navigator.of(context).pop(false),
-          child: Text("NO"),
+        context: context,
+        builder: (context) => new AlertDialog(
+          title: new Text('You are about to log out.'),
+          content: new Text('Are you sure?'),
+          actions: <Widget>[
+            new GestureDetector(
+              onTap: () => Navigator.of(context).pop(false),
+              child: Text("NO"),
+            ),
+            SizedBox(height: 16),
+            new GestureDetector(
+              onTap: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+              child: Text("YES"),
+            ),
+          ],
         ),
-        SizedBox(height: 16),
-        new GestureDetector(
-          onTap: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          },
-          child: Text("YES"),
-        ),
-      ],
-    ),
-  ) ??
+      ) ??
       false;
 }
 
@@ -285,6 +284,8 @@ class _SignInPageState extends State<SignInPage> {
   // bool _obscureText;
   final _usernamecontroller = TextEditingController();
   final _passwordcontroller = TextEditingController();
+  final _emailcontroller = TextEditingController();
+  final _confirmcontroller = TextEditingController();
   bool processing = false;
 
   @override
@@ -310,24 +311,36 @@ class _SignInPageState extends State<SignInPage> {
     var data = {
       'user': _usernamecontroller.text,
       'pass': _passwordcontroller.text,
+      'email': _emailcontroller.text.toLowerCase(),
     };
 
     var res = await http.post(url, body: data);
 
-    if (jsonDecode(res.body) == 'exists') {
+    if (jsonDecode(res.body) == 'email exists') {
       Fluttertoast.showToast(
-          msg: "Account already exists", toastLength: Toast.LENGTH_SHORT);
+          msg: "Email already taken, try logging in.",
+          toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'user exists') {
+      Fluttertoast.showToast(
+          msg: "Account name already taken.", toastLength: Toast.LENGTH_SHORT);
     } else if (jsonDecode(res.body) == 'created') {
       Fluttertoast.showToast(
-          msg: "Account created", toastLength: Toast.LENGTH_SHORT);
+          msg: "Account created. Login with your new account", toastLength: Toast.LENGTH_SHORT);
       _passwordcontroller.text = '';
       _usernamecontroller.text = '';
+      _emailcontroller.text = '';
+      _confirmcontroller.text = '';
+      setState(() {
+        _signIn = true;
+      });
       // Navigator.push(
       //   context,
       //   MaterialPageRoute(builder: (context) => HomePage()),
       // );
     } else {
-      Fluttertoast.showToast(msg: "failed", toastLength: Toast.LENGTH_SHORT);
+      Fluttertoast.showToast(
+          msg: "Failed to create account. Try again later.",
+          toastLength: Toast.LENGTH_SHORT);
     }
 
     setState(() {
@@ -419,6 +432,10 @@ class _SignInPageState extends State<SignInPage> {
             onPressed: () {
               setState(() {
                 _signIn = true;
+                _passwordcontroller.text = '';
+                _usernamecontroller.text = '';
+                _emailcontroller.text = '';
+                _confirmcontroller.text = '';
               });
             },
             child: Text("SIGN IN",
@@ -431,6 +448,10 @@ class _SignInPageState extends State<SignInPage> {
             onPressed: () {
               setState(() {
                 _signIn = false;
+                _passwordcontroller.text = '';
+                _usernamecontroller.text = '';
+                _emailcontroller.text = '';
+                _confirmcontroller.text = '';
               });
             },
             child: Text("SIGN UP",
@@ -445,6 +466,19 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   Widget _buildForm() {
+    if (_signIn) {
+      return Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              _loginBoxUI(),
+              _buildUsernameField(),
+              _buildPasswordField(),
+              _buildSubmitButton(),
+            ],
+          ));
+    }
     return Form(
         key: _formKey,
         child: Column(
@@ -452,7 +486,9 @@ class _SignInPageState extends State<SignInPage> {
           children: <Widget>[
             _loginBoxUI(),
             _buildUsernameField(),
+            _buildEmailField(),
             _buildPasswordField(),
+            _buildConfirmPasswordField(),
             _buildSubmitButton(),
           ],
         ));
@@ -462,12 +498,13 @@ class _SignInPageState extends State<SignInPage> {
     return Column(
       children: [
         new Padding(padding: EdgeInsets.only(top: 15.0)),
-        new Text('Username', style: new TextStyle(fontSize: 25.0)),
+
+        new Text(_signIn? 'Username or Email':'Username', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
           decoration: new InputDecoration(
             fillColor: Colors.white,
-            labelText: '(Debug: guy)',
+            labelText: _signIn ? 'Username or Email (Debug: guy)' : 'New Username',
             border: new OutlineInputBorder(
               borderRadius: new BorderRadius.circular(25.0),
               borderSide: new BorderSide(),
@@ -477,9 +514,51 @@ class _SignInPageState extends State<SignInPage> {
           onSaved: (username) {
             formData['username'] = username;
           },
-          validator: (username) =>
-          // username == masterUsername ? null : 'Incorrect Username',
-          username.length > 0 ? null : "enter",
+          validator: (username) {
+            if(username.length <= 0){
+              return "Please enter a username.";
+            }
+            if (!_signIn && RegExp(r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
+                    .hasMatch(username)) {
+              return 'Username cannot follow email format.';
+            }
+             return null;
+          }
+              // username == masterUsername ? null : 'Incorrect Username',
+
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmailField() {
+    return Column(
+      children: [
+        new Padding(padding: EdgeInsets.only(top: 15.0)),
+        new Text('Email', style: new TextStyle(fontSize: 25.0)),
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new TextFormField(
+          decoration: new InputDecoration(
+            fillColor: Colors.white,
+            labelText: 'Email',
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(25.0),
+              borderSide: new BorderSide(),
+            ),
+          ),
+          controller: _emailcontroller,
+          onSaved: (email) {
+            formData['email'] = email;
+          },
+          validator: (email) {
+            if (email.length > 0 &&
+                !RegExp(r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
+                    .hasMatch(email)) {
+              return 'This is an invalid email.';
+            } else {
+              return null;
+            }
+          },
         ),
       ],
     );
@@ -489,12 +568,14 @@ class _SignInPageState extends State<SignInPage> {
     return Column(
       children: [
         new Padding(padding: EdgeInsets.only(top: 5.0)),
-        new Text('Password', style: new TextStyle(fontSize: 25.0)),
+        new Text('Master Password', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
           controller: _passwordcontroller,
           decoration: new InputDecoration(
-            labelText: '(Debug: 123)',
+            labelText: _signIn
+                ? 'Master Password (Debug: 123)'
+                : 'New Master Password',
             fillColor: Colors.white,
             border: new OutlineInputBorder(
               borderRadius: new BorderRadius.circular(25.0),
@@ -515,7 +596,45 @@ class _SignInPageState extends State<SignInPage> {
           onSaved: (password) {
             formData['password'] = password;
           },
-          validator: (password) => password.length > 0 ? null : "enter",
+          validator: (password) =>
+              password.length > 0 ? null : "Please enter a password.",
+          //password == masterPassword ? null : 'Incorrect Master Password',
+        )
+      ],
+    );
+  }
+
+  Widget _buildConfirmPasswordField() {
+    return Column(
+      children: [
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Confirm Password', style: new TextStyle(fontSize: 25.0)),
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new TextFormField(
+          controller: _confirmcontroller,
+          decoration: new InputDecoration(
+            labelText: 'Enter Master Password again',
+            fillColor: Colors.white,
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(25.0),
+              borderSide: new BorderSide(),
+            ),
+            // suffixIcon: GestureDetector(
+            //   onTap: () {
+            //     setState(() {
+            //       _obscureText = !_obscureText;
+            //     });
+            //   },
+            //   child:
+            //   Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+            // ),
+          ),
+          // obscureText: _obscureText,
+          obscureText: true,
+          validator: (password) =>
+              _confirmcontroller.text == _passwordcontroller.text
+                  ? null
+                  : "Password does not equal master password given.",
           //password == masterPassword ? null : 'Incorrect Master Password',
         )
       ],
@@ -523,15 +642,28 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   Widget _buildSubmitButton() {
+    if (_signIn)
+      return RaisedButton(
+        onPressed: () {
+          _submitForm();
+        },
+        child: processing == false
+            ? Text('Sign In')
+            : CircularProgressIndicator(
+                backgroundColor: Colors.green,
+              ),
+      );
+
+    //Sign up
     return RaisedButton(
       onPressed: () {
         _submitForm();
       },
       child: processing == false
-          ? Text('Login')
+          ? Text('Sign Up')
           : CircularProgressIndicator(
-        backgroundColor: Colors.green,
-      ),
+              backgroundColor: Colors.green,
+            ),
     );
   }
 
@@ -585,7 +717,6 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         key: _formKey,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
-
           children: <Widget>[
             _buildMainField(),
             _buildPasswordField(),
@@ -674,8 +805,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
           },
           validator: (email) {
             if (email.length > 0 &&
-                !RegExp(
-                    r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
+                !RegExp(r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
                     .hasMatch(email)) {
               return 'This is an invalid email.';
             } else {
@@ -692,8 +822,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       children: [
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new Text('Account Name (Optional):',
-            textAlign: TextAlign.left,
-            style: new TextStyle(fontSize: 15.0)),
+            textAlign: TextAlign.left, style: new TextStyle(fontSize: 15.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
           controller: _usernameController,
@@ -733,7 +862,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
               formData['main'] = title;
             },
             validator: (title) =>
-            title.length <= 0 ? 'Please enter a title.' : null),
+                title.length <= 0 ? 'Please enter a title.' : null),
       ],
     );
   }
@@ -747,7 +876,9 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         child: Text('Submit'),
       );
     else {
-      return CircularProgressIndicator(backgroundColor: Colors.green,);
+      return CircularProgressIndicator(
+        backgroundColor: Colors.green,
+      );
     }
   }
 
