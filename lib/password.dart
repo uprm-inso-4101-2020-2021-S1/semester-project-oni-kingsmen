@@ -19,3 +19,15 @@ class Password {
   this.notes = notes;
   }
 }
+
+class Question {
+  String question;
+  String answer;
+  bool caseSensitive;
+
+  Question(String question, String answer, bool caseSensitive){
+    this.question = question;
+    this.answer = answer;
+    this.caseSensitive = caseSensitive;
+  }
+}

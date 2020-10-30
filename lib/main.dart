@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -12,11 +13,8 @@ void main() {
 }
 
 List<Password> passwordList = new List();
+List<Question> questionList = new List();
 int userID = 0;
-
-// List<Password> getPasswords() {
-//   return passwordList;
-// }
 
 void createNewPassword(
     String password, String account, String email, String main, String notes) {
@@ -27,7 +25,19 @@ void createNewPassword(
       account +
       " password: " +
       password);
-  passwordList.add(Password(password, account, email, main, notes));
+  passwordList.add(Password(password.trim(), account.trim(), email.trim(),
+      main.trim(), notes.trim()));
+}
+
+void createNewQuestion(String question, String answer, bool casesensitive) {
+  print("creating question with" +
+      " question: " +
+      question +
+      " answer: " +
+      answer +
+      " case: " +
+      casesensitive.toString());
+  questionList.add(Question(question.trim(), answer.trim(), casesensitive));
 }
 
 class MyApp extends StatelessWidget {
@@ -83,25 +93,104 @@ Future<bool> onBackPressed(BuildContext context) async {
       false;
 }
 
-Future<String> createSecurityQuestion(BuildContext context) {
-  TextEditingController controller = new TextEditingController();
+Future<bool> createSecurityQuestion(BuildContext context, Question question) {
+  TextEditingController _controller = new TextEditingController();
+
+  AlertDialog _withQuestion() {
+    return AlertDialog(
+      title: Text(question.question),
+      content: TextField(
+        controller: _controller,
+      ),
+      actions: <Widget>[
+        MaterialButton(
+            child: Text("Submit"),
+            onPressed: () {
+              _controller.text = _controller.text.trim();
+              if (question.caseSensitive) {
+                if (_controller.text == question.answer) {
+                  Navigator.of(context).pop(true);
+                } else {
+                  Navigator.of(context).pop(false);
+                }
+              } else {
+                if (_controller.text.toLowerCase() ==
+                    question.answer.toLowerCase()) {
+                  Navigator.of(context).pop(true);
+                } else {
+                  Navigator.of(context).pop(false);
+                }
+              }
+            })
+      ],
+    );
+  }
+
+  AlertDialog _withRandomQuestion() {
+    var rng = new Random();
+    int chosenNum = rng.nextInt(questionList.length);
+    return AlertDialog(
+      title: Text(questionList[chosenNum].question),
+      content: TextField(
+        controller: _controller,
+      ),
+      actions: <Widget>[
+        MaterialButton(
+            child: Text("Submit"),
+            onPressed: () {
+              _controller.text = _controller.text.trim();
+              if (questionList[chosenNum].caseSensitive) {
+                if (_controller.text == questionList[chosenNum].answer) {
+                  Navigator.of(context).pop(true);
+                } else {
+                  Navigator.of(context).pop(false);
+                }
+              } else {
+                if (_controller.text.toLowerCase() ==
+                    questionList[chosenNum].answer.toLowerCase()) {
+                  Navigator.of(context).pop(true);
+                } else {
+                  Navigator.of(context).pop(false);
+                }
+              }
+            })
+      ],
+    );
+  }
+
+  AlertDialog _withoutQuestion() {
+    return AlertDialog(
+      title: Text('You have no security questions available!'),
+      content: Text(
+          "You can add security questions by selecting the 'Security Questions' button in the Settings page."
+          "\nAre you sure you want to continue?"),
+      actions: <Widget>[
+        MaterialButton(
+            child: Text("Back"),
+            onPressed: () {
+              _controller.text = _controller.text.trim();
+              Navigator.of(context).pop(false);
+            }),
+        MaterialButton(
+            child: Text("Continue"),
+            onPressed: () {
+              _controller.text = _controller.text.trim();
+              Navigator.of(context).pop(true);
+            }),
+      ],
+    );
+  }
 
   return showDialog(
     context: context,
     builder: (context) {
-      return AlertDialog(
-        title: Text("Security Question (Debug answer: abc"),
-        content: TextField(
-          controller: controller,
-        ),
-        actions: <Widget>[
-          MaterialButton(
-              child: Text("Submit"),
-              onPressed: () {
-                Navigator.of(context).pop(controller.text.trim().toString());
-              })
-        ],
-      );
+      if (question != null) {
+        return _withQuestion();
+      } else if (questionList.length > 0) {
+        return _withRandomQuestion();
+      } else {
+        return _withoutQuestion();
+      }
     },
   );
 }
@@ -262,7 +351,22 @@ class _SettingPageState extends State<SettingPage> {
       ),
       // body is the majority of the screen.
       body: Center(
-        child: Text('Settings'),
+        child: RaisedButton(
+          onPressed: () {
+            createSecurityQuestion(context, null).then((answer) {
+              if (answer == true) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => OldQuestionsPage()),
+                );
+              } else {
+                Fluttertoast.showToast(
+                    msg: "Incorrect Answer", toastLength: Toast.LENGTH_SHORT);
+              }
+            });
+          },
+          child: Text('Security Questions'),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Add', // used by assistive technologies
@@ -311,7 +415,7 @@ class _SignInPageState extends State<SignInPage> {
     });
     var url = 'http://oni-kingsmen-site.000webhostapp.com/signup.php';
     var data = {
-      'user': _usernamecontroller.text.trim(),
+      'user': _usernamecontroller.text.trim().toLowerCase(),
       'pass': _passwordcontroller.text.trim(),
       'email': _emailcontroller.text.trim().toLowerCase(),
     };
@@ -373,12 +477,15 @@ class _SignInPageState extends State<SignInPage> {
       Fluttertoast.showToast(
           msg: "Account found", toastLength: Toast.LENGTH_SHORT);
       passwordList.clear();
+      questionList.clear();
       var json = jsonDecode(res.body);
       print(json);
       userID = int.parse(json);
       _passwordcontroller.text = '';
       _usernamecontroller.text = '';
-      getpasswords(userID.toString());
+
+      getQuestions(userID.toString());
+      getPasswords(userID.toString());
     }
 
     setState(() {
@@ -386,7 +493,7 @@ class _SignInPageState extends State<SignInPage> {
     });
   }
 
-  Future getpasswords(String userid) async {
+  Future getPasswords(String userid) async {
     setState(() {
       processing = true;
     });
@@ -394,6 +501,7 @@ class _SignInPageState extends State<SignInPage> {
     var data = {
       'id': userid,
     };
+
     var res = await http.post(url, body: data);
     List<dynamic> json = jsonDecode(res.body);
     print(json);
@@ -414,6 +522,31 @@ class _SignInPageState extends State<SignInPage> {
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
       );
+    }
+  }
+
+  Future getQuestions(String userid) async {
+    setState(() {
+      processing = true;
+    });
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/getquestions.php';
+    var data = {
+      'id': userid,
+    };
+    var res = await http.post(url, body: data);
+    List<dynamic> json = jsonDecode(res.body);
+    print(json);
+    setState(() {
+      processing = false;
+    });
+    if (json != null) {
+      print("not null");
+      for (var question in json) {
+        createNewQuestion(
+            question['question'].trim(),
+            question['answer'].trim(),
+            question['casesensitive'] == '0' ? false : true);
+      }
     }
   }
 
@@ -550,11 +683,11 @@ class _SignInPageState extends State<SignInPage> {
             formData['email'] = email;
           },
           validator: (email) {
-            if(email.length <= 0){
+            if (email.length <= 0) {
               return 'Please enter a valid email';
-            }
-            else if (!RegExp(r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
-                    .hasMatch(email)) {
+            } else if (!RegExp(
+                    r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
+                .hasMatch(email)) {
               return 'This is an invalid email.';
             } else {
               return null;
@@ -566,6 +699,7 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   bool _obscurePasswordText;
+
   Widget _buildPasswordField() {
     return Column(
       children: [
@@ -589,8 +723,9 @@ class _SignInPageState extends State<SignInPage> {
                   _obscurePasswordText = !_obscurePasswordText;
                 });
               },
-              child:
-              Icon(_obscurePasswordText ? Icons.visibility : Icons.visibility_off),
+              child: Icon(_obscurePasswordText
+                  ? Icons.visibility
+                  : Icons.visibility_off),
             ),
           ),
           // obscureText: _obscureText,
@@ -607,6 +742,7 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   bool _obscureConfirmText;
+
   Widget _buildConfirmPasswordField() {
     return Column(
       children: [
@@ -628,14 +764,16 @@ class _SignInPageState extends State<SignInPage> {
                   _obscureConfirmText = !_obscureConfirmText;
                 });
               },
-              child:
-              Icon(_obscureConfirmText ? Icons.visibility : Icons.visibility_off),
+              child: Icon(_obscureConfirmText
+                  ? Icons.visibility
+                  : Icons.visibility_off),
             ),
           ),
           // obscureText: _obscureText,
           obscureText: _obscureConfirmText,
           validator: (password) =>
-              _confirmcontroller.text == _passwordcontroller.text? null
+              _confirmcontroller.text == _passwordcontroller.text
+                  ? null
                   : "Password does not equal master password given.",
           //password == masterPassword ? null : 'Incorrect Master Password',
         )
@@ -672,9 +810,9 @@ class _SignInPageState extends State<SignInPage> {
   void _submitForm() {
     print('Submitting form');
     if (_formKey.currentState.validate()) {
-      _usernamecontroller.text = _usernamecontroller.text.trim();
+      _usernamecontroller.text = _usernamecontroller.text.trim().toLowerCase();
       _passwordcontroller.text = _passwordcontroller.text.trim();
-      _emailcontroller.text = _emailcontroller.text.trim();
+      _emailcontroller.text = _emailcontroller.text.trim().toLowerCase();
       _confirmcontroller.text = _confirmcontroller.text.trim();
       _formKey.currentState.save(); //onSaved is called!
       print(formData);
@@ -932,7 +1070,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       'pass': _passwordController.text.trim(),
       'email': _emailController.text.trim(),
       'username': _usernameController.text.trim(),
-      'notes': '',
+      'notes': ''.trim(),
     };
 
     var res = await http.post(url, body: data);
@@ -976,10 +1114,10 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       processing = true;
     });
 
-    var url = (password.main == _mainController.text
-        && password.password == _passwordController.text)?
-    'http://oni-kingsmen-site.000webhostapp.com/editoptionalpassword.php'
-        :'http://oni-kingsmen-site.000webhostapp.com/editpassword.php';
+    var url = (password.main == _mainController.text &&
+            password.password == _passwordController.text)
+        ? 'http://oni-kingsmen-site.000webhostapp.com/editcurrentpassword.php'
+        : 'http://oni-kingsmen-site.000webhostapp.com/editpassword.php';
 
     var data = {
       'id': userID.toString(),
@@ -989,14 +1127,15 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       'pass': _passwordController.text.trim(),
       'email': _emailController.text.trim(),
       'user': _usernameController.text.trim(),
-      'notes': '',
+      'notes': ''.trim(),
     };
 
     var res = await http.post(url, body: data);
-print(jsonDecode(res.body));
+    print(jsonDecode(res.body));
     if (jsonDecode(res.body) == 'exists') {
       Fluttertoast.showToast(
-          msg: "Given Title and Password already exist.", toastLength: Toast.LENGTH_SHORT);
+          msg: "Given Title and Password already exist.",
+          toastLength: Toast.LENGTH_SHORT);
     } else if (jsonDecode(res.body) == 'no') {
       Fluttertoast.showToast(
           msg: "Failed to edit password.", toastLength: Toast.LENGTH_SHORT);
@@ -1038,11 +1177,467 @@ print(jsonDecode(res.body));
 
     return Scaffold(
         appBar: AppBar(
-          title: Text(password == null? 'New Password Page':'Edit Password'),
+          title: Text(password == null ? 'New Password Page' : 'Edit Password'),
         ),
         drawer: createPasswordDrawer(context),
         // body is the majority of the screen.
         body: _buildForm());
+  }
+}
+
+class QuestionPage extends StatefulWidget {
+  Question question;
+
+  QuestionPage(Question question) {
+    this.question = question;
+  }
+
+  @override
+  _QuestionPageState createState() => _QuestionPageState(question);
+}
+
+class _QuestionPageState extends State<QuestionPage> {
+  Question question;
+
+  _QuestionPageState(Question question) {
+    this.question = question;
+  }
+
+  Widget _deleteButton() {
+    TextEditingController _controller = new TextEditingController();
+    return RaisedButton(
+      onPressed: () {
+        createSecurityQuestion(context, question);
+        return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(
+                  'Are you sure you want to delete this Security Question?'),
+              content: Column(
+                children: [
+                  Text(question.question),
+                  Text("Type 'yes' to confirm."),
+                  TextField(
+                    controller: _controller,
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                MaterialButton(
+                    child: Text("Submit"),
+                    onPressed: () {
+                      _controller.text = _controller.text.trim().toLowerCase();
+                      if (_controller.text == 'yes') {
+                        _deleteQuestion();
+                      } else {
+                        Navigator.of(context).pop();
+                      }
+                    })
+              ],
+            );
+          },
+        );
+      },
+      child: Text('Delete Question'),
+    );
+  }
+
+  Future _deleteQuestion() async {
+    setState(() {
+      processing = true;
+    });
+
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/deletequestion.php';
+    var data = {
+      'id': userID.toString(),
+      'question': question.question,
+    };
+
+    var res = await http.post(url, body: data);
+    print("JSONRES: " + jsonDecode(res.body));
+    if (jsonDecode(res.body) == 'true') {
+      Fluttertoast.showToast(
+          msg: "Question Deleted", toastLength: Toast.LENGTH_SHORT);
+
+      questionList.remove(question);
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    } else if (jsonDecode(res.body) == 'false') {
+      Fluttertoast.showToast(
+          msg: "Failed to delete question.", toastLength: Toast.LENGTH_SHORT);
+    } else {
+      Fluttertoast.showToast(
+          msg: "An error occurred. Try again later.",
+          toastLength: Toast.LENGTH_SHORT);
+    }
+
+    setState(() {
+      processing = false;
+    });
+  }
+
+  final _formKey = GlobalKey<FormState>();
+  bool processing = false;
+  final _questionController = TextEditingController();
+  final _answerController = TextEditingController();
+
+  final Map<String, dynamic> formData = {
+    'question': null,
+    'answer': null,
+    'casesensitive': null,
+  };
+
+  bool _obscureText;
+
+  @override
+  void initState() {
+    _obscureText = true;
+
+    if (question != null) {
+      _questionController.text = question.question;
+      _answerController.text = question.answer;
+      checkboxValue = question.caseSensitive;
+      _obscureText = true;
+    } else {
+      checkboxValue = false;
+    }
+    super.initState();
+  }
+
+  Widget _buildAnswerField() {
+    return Column(
+      children: [
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Answer:', style: new TextStyle(fontSize: 15.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
+        new TextFormField(
+            controller: _answerController,
+            decoration: new InputDecoration(
+              labelText: 'Answer',
+              fillColor: Colors.white,
+              border: new OutlineInputBorder(
+                borderRadius: new BorderRadius.circular(25.0),
+                borderSide: new BorderSide(),
+              ),
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+                child: Icon(
+                    _obscureText ? Icons.visibility : Icons.visibility_off),
+              ),
+            ),
+            obscureText: _obscureText,
+            onSaved: (answer) {
+              formData['answer'] = answer;
+            },
+            validator: (answer) {
+              if (answer.length <= 0) {
+                return 'Please enter an answer.';
+              } else if (answer.length > 128) {
+                return 'Max Answer Size: 128';
+              }
+              return null;
+            }),
+      ],
+    );
+  }
+
+  Widget _buildQuestionField() {
+    return Column(
+      children: [
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Question:', style: new TextStyle(fontSize: 15.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
+        new TextFormField(
+            controller: _questionController,
+            decoration: new InputDecoration(
+              labelText: 'Title',
+              fillColor: Colors.white,
+              border: new OutlineInputBorder(
+                borderRadius: new BorderRadius.circular(25.0),
+                borderSide: new BorderSide(),
+              ),
+            ),
+            onSaved: (question) {
+              formData['question'] = question;
+            },
+            validator: (question) {
+              if (question.length <= 0) {
+                return 'Please enter an answer.';
+              } else if (question.length > 128) {
+                return 'Max Answer Size: 128';
+              }
+              return null;
+            }),
+      ],
+    );
+  }
+
+  var checkboxValue;
+
+  Widget _caseSensitiveBox() {
+    return CheckboxListTile(
+      value: checkboxValue,
+      onChanged: (val) {
+        setState(() {
+          checkboxValue = val;
+        });
+      },
+      title:
+          new Text('Case Sensitive Answer', style: TextStyle(fontSize: 14.0)),
+      controlAffinity: ListTileControlAffinity.leading,
+      activeColor: Colors.green,
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    if (processing == false)
+      return RaisedButton(
+        onPressed: () {
+          _submitForm();
+        },
+        child: Text('Submit'),
+      );
+    else {
+      return CircularProgressIndicator(
+        backgroundColor: Colors.green,
+      );
+    }
+  }
+
+  void _submitForm() {
+    print('Submitting form');
+    if (_formKey.currentState.validate()) {
+      checkboxValue
+          ? formData['casesensitive'] = '1'
+          : formData['casesensitive'] = '0';
+      _formKey.currentState.save(); //onSaved is called!
+      print(formData);
+      if (question == null) {
+        addQuestionToDB();
+      } else {
+        editQuestion();
+      }
+    }
+  }
+
+  Widget _buildForm() {
+    return Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            _buildQuestionField(),
+            _buildAnswerField(),
+            _caseSensitiveBox(),
+            _buildSubmitButton(),
+            if (question != null) _deleteButton(),
+          ],
+        ));
+  }
+
+  Future addQuestionToDB() async {
+    setState(() {
+      processing = true;
+    });
+
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/createquestion.php';
+    var data = {
+      'id': userID.toString(),
+      'question': _questionController.text.trim(),
+      'answer': _answerController.text.trim(),
+      'case': checkboxValue ? '1' : '0',
+    };
+
+    var res = await http.post(url, body: data);
+
+    if (jsonDecode(res.body) == 'exists') {
+      Fluttertoast.showToast(
+          msg: "Given Question already exists.",
+          toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'created') {
+      Fluttertoast.showToast(
+          msg: "New Question Added", toastLength: Toast.LENGTH_SHORT);
+      createNewQuestion(_questionController.text.trim(),
+          _answerController.text.trim(), checkboxValue);
+
+      _questionController.text = '';
+      _answerController.text = '';
+
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed to create question.", toastLength: Toast.LENGTH_SHORT);
+    }
+
+    setState(() {
+      processing = false;
+    });
+  }
+
+  Future editQuestion() async {
+    setState(() {
+      processing = true;
+    });
+
+    var url = (question.question.toLowerCase() ==
+            _questionController.text.toLowerCase())
+        ? 'http://oni-kingsmen-site.000webhostapp.com/editcurrentquestion.php'
+        : 'http://oni-kingsmen-site.000webhostapp.com/editquestion.php';
+
+    var data = {
+      'id': userID.toString(),
+      'oldquestion': question.question,
+      'oldanswer': question.answer,
+      'question': _questionController.text.trim(),
+      'answer': _answerController.text.trim(),
+      'case': checkboxValue ? '1' : '0',
+    };
+
+    var res = await http.post(url, body: data);
+    print(jsonDecode(res.body));
+    if (jsonDecode(res.body) == 'exists') {
+      Fluttertoast.showToast(
+          msg: "Given Question already exists.",
+          toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'no') {
+      Fluttertoast.showToast(
+          msg: "Failed to edit question.", toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == true) {
+      Fluttertoast.showToast(
+          msg: "Question Edited", toastLength: Toast.LENGTH_SHORT);
+
+      question.question = _questionController.text;
+      question.answer = _answerController.text;
+      question.caseSensitive = checkboxValue;
+
+      _questionController.text = '';
+      _answerController.text = '';
+
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    } else {
+      Fluttertoast.showToast(
+          msg: "An error occurred. Try again later.",
+          toastLength: Toast.LENGTH_SHORT);
+    }
+
+    setState(() {
+      processing = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Scaffold is a layout for the major Material Components.
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(question == null
+              ? 'New Security Question Page'
+              : 'Edit Security Question'),
+        ),
+        drawer: createPasswordDrawer(context),
+        // body is the majority of the screen.
+        body: _buildForm());
+  }
+}
+
+class OldQuestionsPage extends StatefulWidget {
+  OldQuestionsPage({Key key}) : super(key: key);
+
+  @override
+  _OldQuestionsPageState createState() => _OldQuestionsPageState();
+}
+
+class _OldQuestionsPageState extends State<OldQuestionsPage> {
+  @override
+  void initState() {
+    super.initState();
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Security Questions"),
+      ),
+      // drawer: createDrawer(context),
+      body: ListView.builder(
+        itemCount: questionList.length,
+        itemBuilder: (context, index) {
+          final questionItem = questionList[index];
+
+          return ListTile(
+            onTap: () {
+              createSecurityQuestion(context, questionItem).then((answer) {
+                if (answer == true) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => QuestionPage(questionItem)),
+                  );
+                } else {
+                  Fluttertoast.showToast(
+                      msg: "Incorrect Answer", toastLength: Toast.LENGTH_SHORT);
+                }
+              });
+            },
+            title: Text(questionItem.question),
+            trailing: IconButton(
+              icon: Icon(Icons.menu),
+              tooltip: 'Details',
+              onPressed: () {
+                createSecurityQuestion(context, questionItem).then((answer) {
+                  if (answer == true) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => QuestionPage(questionItem)),
+                    );
+                  } else {
+                    Fluttertoast.showToast(
+                        msg: "Incorrect Answer",
+                        toastLength: Toast.LENGTH_SHORT);
+                  }
+                });
+              },
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => QuestionPage(null)),
+          );
+        },
+        tooltip: 'Add New Security Question',
+        child: Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
   }
 }
 
@@ -1129,7 +1724,6 @@ class OldPasswordPage extends StatefulWidget {
 class _OldPasswordPageState extends State<OldPasswordPage> {
   Password password;
   bool _obscureText;
-  String securityAnswer = "abc";
   final _controller = TextEditingController();
 
   _OldPasswordPageState(Password password) {
@@ -1151,7 +1745,7 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
     };
 
     var res = await http.post(url, body: data);
-    print("JSONRES: " +jsonDecode(res.body));
+    print("JSONRES: " + jsonDecode(res.body));
     if (jsonDecode(res.body) == 'true') {
       Fluttertoast.showToast(
           msg: "Password Deleted", toastLength: Toast.LENGTH_SHORT);
@@ -1211,9 +1805,9 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
               icon: Icon(Icons.visibility),
               onPressed: () {
                 if (_obscureText) {
-                  createSecurityQuestion(context).then((answer) {
+                  createSecurityQuestion(context, null).then((answer) {
                     print(answer);
-                    if (answer == securityAnswer) {
+                    if (answer == true) {
                       setState(() {
                         _obscureText = false;
                       });
@@ -1235,13 +1829,12 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
           ),
           RaisedButton(
             onPressed: () {
-              createSecurityQuestion(context).then((answer){
-                if (securityAnswer == answer){
+              createSecurityQuestion(context, null).then((answer) {
+                if (answer == true) {
                   _deletePassword();
                 } else {
                   Fluttertoast.showToast(
-                      msg: "Incorrect Answer",
-                      toastLength: Toast.LENGTH_SHORT);
+                      msg: "Incorrect Answer", toastLength: Toast.LENGTH_SHORT);
                 }
               });
             },
@@ -1254,9 +1847,9 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
         tooltip: 'Edit',
         child: Icon(Icons.edit),
         onPressed: () {
-          createSecurityQuestion(context).then((answer) {
+          createSecurityQuestion(context, null).then((answer) {
             print(answer);
-            if (answer == securityAnswer) {
+            if (answer == true) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
