@@ -17,27 +17,31 @@ List<Question> questionList = new List();
 int userID = 0;
 
 void createNewPassword(
-    String password, String account, String email, String main, String notes) {
+    int id, String password, String account, String email, String main, String notes) {
   print("creating password with" +
+      " id: " +
+      id.toString() +
       " main: " +
       main +
       " account: " +
       account +
       " password: " +
       password);
-  passwordList.add(Password(password.trim(), account.trim(), email.trim(),
+  passwordList.add(Password(id, password.trim(), account.trim(), email.trim(),
       main.trim(), notes.trim()));
 }
 
-void createNewQuestion(String question, String answer, bool casesensitive) {
+void createNewQuestion(int id, String question, String answer, bool casesensitive) {
   print("creating question with" +
+      " id: " +
+      id.toString() +
       " question: " +
       question +
       " answer: " +
       answer +
       " case: " +
       casesensitive.toString());
-  questionList.add(Question(question.trim(), answer.trim(), casesensitive));
+  questionList.add(Question(id, question.trim(), answer.trim(), casesensitive));
 }
 
 class MyApp extends StatelessWidget {
@@ -353,25 +357,27 @@ class _SettingPageState extends State<SettingPage> {
       body: Center(
         child: RaisedButton(
           onPressed: () {
-            createSecurityQuestion(context, null).then((answer) {
-              if (answer == true) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OldQuestionsPage()),
-                );
-              } else {
-                Fluttertoast.showToast(
-                    msg: "Incorrect Answer", toastLength: Toast.LENGTH_SHORT);
-              }
-            });
+            if(questionList.length > 0){
+              createSecurityQuestion(context, null).then((answer) {
+                if (answer == true) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => OldQuestionsPage()),
+                  );
+                } else {
+                  Fluttertoast.showToast(
+                      msg: "Incorrect Answer", toastLength: Toast.LENGTH_SHORT);
+                }
+              });
+            } else{
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => OldQuestionsPage()),
+              );
+            }
           },
           child: Text('Security Questions'),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Add', // used by assistive technologies
-        child: Icon(Icons.airline_seat_recline_extra),
-        onPressed: null,
       ),
     );
   }
@@ -456,7 +462,7 @@ class _SignInPageState extends State<SignInPage> {
     });
     var url = 'http://oni-kingsmen-site.000webhostapp.com/signin.php';
     var data = {
-      'user': _usernamecontroller.text.trim(),
+      'username': _usernamecontroller.text.trim(),
       'pass': _passwordcontroller.text.trim(),
     };
     var res = await http.post(url, body: data);
@@ -511,7 +517,7 @@ class _SignInPageState extends State<SignInPage> {
     if (json != null) {
       print("not null");
       for (var password in json) {
-        createNewPassword(password['password'], password['username'],
+        createNewPassword(int.parse(password['id']), password['password'], password['username'],
             password['email'], password['main'], password['notes']);
       }
       Navigator.push(
@@ -543,6 +549,7 @@ class _SignInPageState extends State<SignInPage> {
       print("not null");
       for (var question in json) {
         createNewQuestion(
+            int.parse(question['id']),
             question['question'].trim(),
             question['answer'].trim(),
             question['casesensitive'] == '0' ? false : true);
@@ -1065,7 +1072,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
 
     var url = 'http://oni-kingsmen-site.000webhostapp.com/createpassword.php';
     var data = {
-      'id': userID.toString(),
+      'userid': userID.toString(),
       'main': _mainController.text.trim(),
       'pass': _passwordController.text.trim(),
       'email': _emailController.text.trim(),
@@ -1079,15 +1086,21 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       Fluttertoast.showToast(
           msg: "Given Title and Password already exist.",
           toastLength: Toast.LENGTH_SHORT);
-    } else if (jsonDecode(res.body) == 'created') {
+    } else if (jsonDecode(res.body).toString().contains(RegExp(r"a-zA-Z"))) {
+      Fluttertoast.showToast(
+          msg: "Failed to create password.", toastLength: Toast.LENGTH_SHORT);
+    }else {
+      int id = int.parse(jsonDecode(res.body));
       Fluttertoast.showToast(
           msg: "New Password Added", toastLength: Toast.LENGTH_SHORT);
       createNewPassword(
+          id,
           _passwordController.text.trim(),
           _usernameController.text.trim(),
           _emailController.text.trim(),
           _mainController.text.trim(),
           _notesController.text.trim());
+
       _passwordController.text = '';
       _usernameController.text = '';
       _emailController.text = '';
@@ -1099,9 +1112,6 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
       );
-    } else {
-      Fluttertoast.showToast(
-          msg: "Failed to create password.", toastLength: Toast.LENGTH_SHORT);
     }
 
     setState(() {
@@ -1114,15 +1124,10 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       processing = true;
     });
 
-    var url = (password.main == _mainController.text &&
-            password.password == _passwordController.text)
-        ? 'http://oni-kingsmen-site.000webhostapp.com/editcurrentpassword.php'
-        : 'http://oni-kingsmen-site.000webhostapp.com/editpassword.php';
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/editpassword.php';
 
     var data = {
-      'id': userID.toString(),
-      'oldmain': password.main,
-      'oldpass': password.password,
+      'id': password.id,
       'main': _mainController.text.trim(),
       'pass': _passwordController.text.trim(),
       'email': _emailController.text.trim(),
@@ -1207,7 +1212,6 @@ class _QuestionPageState extends State<QuestionPage> {
     TextEditingController _controller = new TextEditingController();
     return RaisedButton(
       onPressed: () {
-        createSecurityQuestion(context, question);
         return showDialog(
           context: context,
           builder: (context) {
@@ -1231,7 +1235,9 @@ class _QuestionPageState extends State<QuestionPage> {
                       if (_controller.text == 'yes') {
                         _deleteQuestion();
                       } else {
-                        Navigator.of(context).pop();
+                        Fluttertoast.showToast(
+                            msg: "You must type 'yes' to confirm deletion.", toastLength: Toast.LENGTH_SHORT);
+                        Navigator.pop(context);
                       }
                     })
               ],
@@ -1250,8 +1256,7 @@ class _QuestionPageState extends State<QuestionPage> {
 
     var url = 'http://oni-kingsmen-site.000webhostapp.com/deletequestion.php';
     var data = {
-      'id': userID.toString(),
-      'question': question.question,
+      'id': question.id.toString()
     };
 
     var res = await http.post(url, body: data);
@@ -1465,10 +1470,14 @@ class _QuestionPageState extends State<QuestionPage> {
       Fluttertoast.showToast(
           msg: "Given Question already exists.",
           toastLength: Toast.LENGTH_SHORT);
-    } else if (jsonDecode(res.body) == 'created') {
+    } else if (jsonDecode(res.body).toString().contains(RegExp(r"a-zA-Z"))) {
+      Fluttertoast.showToast(
+          msg: "Failed to create question.", toastLength: Toast.LENGTH_SHORT);
+    } else {
+      int id = int.parse(jsonDecode(res.body));
       Fluttertoast.showToast(
           msg: "New Question Added", toastLength: Toast.LENGTH_SHORT);
-      createNewQuestion(_questionController.text.trim(),
+      createNewQuestion(id, _questionController.text.trim(),
           _answerController.text.trim(), checkboxValue);
 
       _questionController.text = '';
@@ -1478,11 +1487,8 @@ class _QuestionPageState extends State<QuestionPage> {
       Navigator.of(context).pop();
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => OldQuestionsPage()),
       );
-    } else {
-      Fluttertoast.showToast(
-          msg: "Failed to create question.", toastLength: Toast.LENGTH_SHORT);
     }
 
     setState(() {
@@ -1495,15 +1501,10 @@ class _QuestionPageState extends State<QuestionPage> {
       processing = true;
     });
 
-    var url = (question.question.toLowerCase() ==
-            _questionController.text.toLowerCase())
-        ? 'http://oni-kingsmen-site.000webhostapp.com/editcurrentquestion.php'
-        : 'http://oni-kingsmen-site.000webhostapp.com/editquestion.php';
+    var url = 'http://oni-kingsmen-site.000webhostapp.com/editquestion.php';
 
     var data = {
-      'id': userID.toString(),
-      'oldquestion': question.question,
-      'oldanswer': question.answer,
+      'id': question.id,
       'question': _questionController.text.trim(),
       'answer': _answerController.text.trim(),
       'case': checkboxValue ? '1' : '0',
@@ -1739,9 +1740,7 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
 
     var url = 'http://oni-kingsmen-site.000webhostapp.com/deletepassword.php';
     var data = {
-      'id': userID.toString(),
-      'main': password.main,
-      'pass': password.password,
+      'id': password.id.toString()
     };
 
     var res = await http.post(url, body: data);

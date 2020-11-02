@@ -183,6 +183,7 @@ String generatePassword(int size, int numberCount, int symbolCount) {
   var rng = new Random();
   int charCount = size - numberCount - symbolCount;
 
+  //current ammount of chars in password
   int currChars = 0;
   int currNums = 0;
   int currSyms = 0;
@@ -190,23 +191,26 @@ String generatePassword(int size, int numberCount, int symbolCount) {
   String password = "";
 
   //determine next element
-  while (currChars < charCount &&
-          (currNums < numberCount || currSyms < symbolCount) ||
-      (currNums < numberCount && currSyms < symbolCount)) {
+  while (currChars < charCount && (currNums < numberCount || currSyms < symbolCount)
+      || (currNums < numberCount && currSyms < symbolCount)) {
     switch (rng.nextInt(3)) {
+      //chosen next character type
       case 0:
+        //chose alphabet char
         if (currChars < charCount) {
           password += alphabet[rng.nextInt(alphabet.length)];
           currChars++;
         }
         break;
       case 1:
+        //chose number
         if (currNums < numberCount) {
           password += numbers[rng.nextInt(numbers.length)];
           currNums++;
         }
         break;
       default:
+      //chose symbol
         if (currSyms < symbolCount) {
           password += symbols[rng.nextInt(symbols.length)];
           currSyms++;
