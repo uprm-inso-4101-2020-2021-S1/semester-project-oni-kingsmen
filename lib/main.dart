@@ -609,8 +609,7 @@ class _SignInPageState extends State<SignInPage> {
     if (_signIn) {
       return Form(
           key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: ListView(
             children: <Widget>[
               _loginBoxUI(),
               _buildUsernameField(),
@@ -621,8 +620,7 @@ class _SignInPageState extends State<SignInPage> {
     }
     return Form(
         key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
           children: <Widget>[
             _loginBoxUI(),
             _buildUsernameField(),
@@ -637,7 +635,7 @@ class _SignInPageState extends State<SignInPage> {
   Widget _buildUsernameField() {
     return Column(
       children: [
-        new Padding(padding: EdgeInsets.only(top: 15.0)),
+        new Padding(padding: EdgeInsets.only(top: 20.0)),
         new Text(_signIn ? 'Username or Email' : 'Username',
             style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
@@ -645,7 +643,7 @@ class _SignInPageState extends State<SignInPage> {
             decoration: new InputDecoration(
               fillColor: Colors.white,
               labelText:
-                  _signIn ? 'Username or Email (Debug: guy)' : 'New Username',
+                  _signIn ? 'Username or Email' : 'New Username',
               border: new OutlineInputBorder(
                 borderRadius: new BorderRadius.circular(25.0),
                 borderSide: new BorderSide(),
@@ -673,7 +671,7 @@ class _SignInPageState extends State<SignInPage> {
   Widget _buildEmailField() {
     return Column(
       children: [
-        new Padding(padding: EdgeInsets.only(top: 15.0)),
+        new Padding(padding: EdgeInsets.only(top: 20.0)),
         new Text('Email', style: new TextStyle(fontSize: 25.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
@@ -717,7 +715,7 @@ class _SignInPageState extends State<SignInPage> {
           controller: _passwordcontroller,
           decoration: new InputDecoration(
             labelText: _signIn
-                ? 'Master Password (Debug: 123)'
+                ? 'Master Password'
                 : 'New Master Password',
             fillColor: Colors.white,
             border: new OutlineInputBorder(
@@ -886,6 +884,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       _passwordController.text = password.password;
       _emailController.text = password.email;
       _mainController.text = password.main;
+      _notesController.text = password.notes;
     }
     super.initState();
   }
@@ -894,7 +893,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     return Column(
       children: [
         new Padding(padding: EdgeInsets.only(top: 5.0)),
-        new Text('Password:', style: new TextStyle(fontSize: 15.0)),
+        new Text('Password:', style: new TextStyle(fontSize: 20.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
             controller: _passwordController,
@@ -928,7 +927,8 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
               return null;
             }),
         new RaisedButton(
-          child: new Text("Generate Password"),
+          child: new Text("Generate Random "
+              "Password"),
           onPressed: () {
             passwordGeneratorPopup(context).then((generatedPassword) {
               _passwordController.text = generatedPassword;
@@ -943,7 +943,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     return Column(
       children: [
         new Padding(padding: EdgeInsets.only(top: 5.0)),
-        new Text('Email (Optional):', style: new TextStyle(fontSize: 15.0)),
+        new Text('Email (Optional):', style: new TextStyle(fontSize: 20.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
           controller: _emailController,
@@ -977,7 +977,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       children: [
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new Text('Account Name (Optional):',
-            textAlign: TextAlign.left, style: new TextStyle(fontSize: 15.0)),
+            textAlign: TextAlign.left, style: new TextStyle(fontSize: 20.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
           controller: _usernameController,
@@ -997,11 +997,44 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     );
   }
 
+  Widget _buildNotesField() {
+    return Column(
+      children: [
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Notes (Optional):',
+            textAlign: TextAlign.left, style: new TextStyle(fontSize: 20.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
+        new TextFormField(
+          controller: _notesController,
+          maxLines: null,
+          maxLength: 250,
+          buildCounter: (context, {currentLength, maxLength, isFocused}) => Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Container(
+                alignment: Alignment.topRight,
+                child: Text("Notes Character Count: " + currentLength.toString() + "/" + maxLength.toString())),
+          ),
+          decoration: new InputDecoration(
+            fillColor: Colors.white,
+            labelText: 'Notes (Optional)',
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(25.0),
+              borderSide: new BorderSide(),
+            ),
+          ),
+          onSaved: (notes) {
+            formData['notes'] = notes;
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildMainField() {
     return Column(
       children: [
         new Padding(padding: EdgeInsets.only(top: 5.0)),
-        new Text('Title:', style: new TextStyle(fontSize: 15.0)),
+        new Text('Title:', style: new TextStyle(fontSize: 20.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
             controller: _mainController,
@@ -1053,13 +1086,13 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   Widget _buildForm() {
     return Form(
         key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+        child: ListView(
           children: <Widget>[
             _buildMainField(),
             _buildPasswordField(),
             _buildAccountField(),
             _buildEmailField(),
+            _buildNotesField(),
             _buildSubmitButton(),
           ],
         ));
@@ -1077,7 +1110,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       'pass': _passwordController.text.trim(),
       'email': _emailController.text.trim(),
       'username': _usernameController.text.trim(),
-      'notes': ''.trim(),
+      'notes': _notesController.text.trim(),
     };
 
     var res = await http.post(url, body: data);
@@ -1127,12 +1160,12 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     var url = 'http://oni-kingsmen-site.000webhostapp.com/editpassword.php';
 
     var data = {
-      'id': password.id,
+      'id': password.id.toString(),
       'main': _mainController.text.trim(),
       'pass': _passwordController.text.trim(),
       'email': _emailController.text.trim(),
       'user': _usernameController.text.trim(),
-      'notes': ''.trim(),
+      'notes': _notesController.text.trim(),
     };
 
     var res = await http.post(url, body: data);
@@ -1144,7 +1177,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     } else if (jsonDecode(res.body) == 'no') {
       Fluttertoast.showToast(
           msg: "Failed to edit password.", toastLength: Toast.LENGTH_SHORT);
-    } else if (jsonDecode(res.body) == true) {
+    } else if (jsonDecode(res.body) == 'true') {
       Fluttertoast.showToast(
           msg: "Password Edited", toastLength: Toast.LENGTH_SHORT);
 
@@ -1152,11 +1185,13 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       password.password = _passwordController.text;
       password.account = _usernameController.text;
       password.email = _emailController.text;
+      password.notes = _notesController.text;
 
       _passwordController.text = '';
       _usernameController.text = '';
       _emailController.text = '';
       _mainController.text = '';
+      _passwordController.text = '';
 
       Navigator.of(context).pop();
       Navigator.of(context).pop();
@@ -1217,11 +1252,14 @@ class _QuestionPageState extends State<QuestionPage> {
           builder: (context) {
             return AlertDialog(
               title: Text(
-                  'Are you sure you want to delete this Security Question?'),
+                  'Are you sure you want to delete this Security Question?', style: TextStyle(color: Colors.red)),
               content: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(question.question),
-                  Text("Type 'yes' to confirm."),
+                  Text(question.question,
+                      style: new TextStyle(fontSize: 20.0)),
+                  Padding(padding: EdgeInsets.only(top: 10.0)),
+                  Text("Type 'delete' to confirm."),
                   TextField(
                     controller: _controller,
                   ),
@@ -1231,14 +1269,14 @@ class _QuestionPageState extends State<QuestionPage> {
                 MaterialButton(
                     child: Text("Submit"),
                     onPressed: () {
-                      _controller.text = _controller.text.trim().toLowerCase();
-                      if (_controller.text == 'yes') {
+                      if (_controller.text == 'delete') {
                         _deleteQuestion();
                       } else {
                         Fluttertoast.showToast(
-                            msg: "You must type 'yes' to confirm deletion.", toastLength: Toast.LENGTH_SHORT);
+                            msg: "You must type 'delete' to confirm deletion.", toastLength: Toast.LENGTH_SHORT);
                         Navigator.pop(context);
                       }
+                      _controller.text = '';
                     })
               ],
             );
@@ -1268,11 +1306,9 @@ class _QuestionPageState extends State<QuestionPage> {
       questionList.remove(question);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
-      Navigator.of(context).pop();
-      Navigator.of(context).pop();
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => OldQuestionsPage()),
       );
     } else if (jsonDecode(res.body) == 'false') {
       Fluttertoast.showToast(
@@ -1320,7 +1356,7 @@ class _QuestionPageState extends State<QuestionPage> {
     return Column(
       children: [
         new Padding(padding: EdgeInsets.only(top: 5.0)),
-        new Text('Answer:', style: new TextStyle(fontSize: 15.0)),
+        new Text('Answer:', style: new TextStyle(fontSize: 20.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
             controller: _answerController,
@@ -1361,7 +1397,7 @@ class _QuestionPageState extends State<QuestionPage> {
     return Column(
       children: [
         new Padding(padding: EdgeInsets.only(top: 5.0)),
-        new Text('Question:', style: new TextStyle(fontSize: 15.0)),
+        new Text('Question:', style: new TextStyle(fontSize: 20.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
             controller: _questionController,
@@ -1439,8 +1475,7 @@ class _QuestionPageState extends State<QuestionPage> {
   Widget _buildForm() {
     return Form(
         key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+        child: ListView(
           children: <Widget>[
             _buildQuestionField(),
             _buildAnswerField(),
@@ -1466,7 +1501,7 @@ class _QuestionPageState extends State<QuestionPage> {
 
     var res = await http.post(url, body: data);
 
-    if (jsonDecode(res.body) == 'exists') {
+    if (questionList.any((element) => element.question == _questionController.text.trim())) {
       Fluttertoast.showToast(
           msg: "Given Question already exists.",
           toastLength: Toast.LENGTH_SHORT);
@@ -1504,7 +1539,7 @@ class _QuestionPageState extends State<QuestionPage> {
     var url = 'http://oni-kingsmen-site.000webhostapp.com/editquestion.php';
 
     var data = {
-      'id': question.id,
+      'id': question.id.toString(),
       'question': _questionController.text.trim(),
       'answer': _answerController.text.trim(),
       'case': checkboxValue ? '1' : '0',
@@ -1512,16 +1547,16 @@ class _QuestionPageState extends State<QuestionPage> {
 
     var res = await http.post(url, body: data);
     print(jsonDecode(res.body));
-    if (jsonDecode(res.body) == 'exists') {
+    if (questionList.any((element) => element.id != question.id && element.question == _questionController.text.trim())) {
       Fluttertoast.showToast(
           msg: "Given Question already exists.",
           toastLength: Toast.LENGTH_SHORT);
     } else if (jsonDecode(res.body) == 'no') {
       Fluttertoast.showToast(
-          msg: "Failed to edit question.", toastLength: Toast.LENGTH_SHORT);
-    } else if (jsonDecode(res.body) == true) {
+          msg: "Failed to edit question. Please try again later.", toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'true') {
       Fluttertoast.showToast(
-          msg: "Question Edited", toastLength: Toast.LENGTH_SHORT);
+          msg: "Security Question Edited", toastLength: Toast.LENGTH_SHORT);
 
       question.question = _questionController.text;
       question.answer = _answerController.text;
@@ -1532,10 +1567,9 @@ class _QuestionPageState extends State<QuestionPage> {
 
       Navigator.of(context).pop();
       Navigator.of(context).pop();
-      Navigator.of(context).pop();
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => OldQuestionsPage()),
       );
     } else {
       Fluttertoast.showToast(
@@ -1725,7 +1759,9 @@ class OldPasswordPage extends StatefulWidget {
 class _OldPasswordPageState extends State<OldPasswordPage> {
   Password password;
   bool _obscureText;
-  final _controller = TextEditingController();
+
+  TextEditingController _passwordController = TextEditingController();
+  TextEditingController _notesController = TextEditingController();
 
   _OldPasswordPageState(Password password) {
     this.password = password;
@@ -1772,7 +1808,8 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
 
   @override
   void initState() {
-    _controller.text = password.password;
+    _passwordController.text = password.password;
+    _notesController.text = password.notes;
     _obscureText = true;
     super.initState();
   }
@@ -1789,14 +1826,14 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
       body: ListView(
         children: [
           ListTile(
-            title: Text("Account:"),
+            title: Text("Account:",style: TextStyle(fontSize: 20.0)),
             subtitle: Text(password.account),
           ),
           ListTile(
-            title: Text("Password:"),
+            title: Text("Password:",style: TextStyle(fontSize: 20.0)),
             subtitle: TextField(
               readOnly: true,
-              controller: _controller,
+              controller: _passwordController,
               obscureText: _obscureText,
             ),
           ),
@@ -1823,14 +1860,57 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
                 }
               }),
           ListTile(
-            title: Text("Email:"),
+            title: Text("Email:",style: TextStyle(fontSize: 20.0)),
             subtitle: Text(password.email),
+          ),
+          ListTile(
+            title: Text("Notes:",style: TextStyle(fontSize: 20.0)),
+            subtitle: TextFormField(
+              controller: _notesController,
+              readOnly: true,
+              maxLines: null,
+            ),
           ),
           RaisedButton(
             onPressed: () {
+              TextEditingController _controller = TextEditingController();
               createSecurityQuestion(context, null).then((answer) {
                 if (answer == true) {
-                  _deletePassword();
+                  return showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text(
+                            'Are you sure you want to delete this Password?', style: TextStyle(color: Colors.red)),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(password.main,
+                                style: new TextStyle(fontSize: 20.0)),
+                            Text(password.account),
+                            Padding(padding: EdgeInsets.only(top: 15.0)),
+                            Text("Type 'delete' to confirm."),
+                            TextField(
+                              controller: _controller,
+                            ),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          MaterialButton(
+                              child: Text("Submit"),
+                              onPressed: () {
+                                if (_controller.text == 'delete') {
+                                  _deletePassword();
+                                } else {
+                                  Fluttertoast.showToast(
+                                      msg: "You must type 'delete' to confirm deletion.", toastLength: Toast.LENGTH_SHORT);
+                                  Navigator.pop(context);
+                                }
+                              })
+                        ],
+                      );
+                    },
+                  );
                 } else {
                   Fluttertoast.showToast(
                       msg: "Incorrect Answer", toastLength: Toast.LENGTH_SHORT);
