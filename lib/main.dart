@@ -16,8 +16,8 @@ List<Password> passwordList = new List();
 List<Question> questionList = new List();
 int userID = 0;
 
-void createNewPassword(
-    int id, String password, String account, String email, String main, String notes) {
+void createNewPassword(int id, String password, String account, String email,
+    String main, String notes) {
   print("creating password with" +
       " id: " +
       id.toString() +
@@ -31,7 +31,8 @@ void createNewPassword(
       main.trim(), notes.trim()));
 }
 
-void createNewQuestion(int id, String question, String answer, bool casesensitive) {
+void createNewQuestion(
+    int id, String question, String answer, bool casesensitive) {
   print("creating question with" +
       " id: " +
       id.toString() +
@@ -206,13 +207,15 @@ Drawer createDrawer(BuildContext context) {
       padding: EdgeInsets.zero,
       children: <Widget>[
         DrawerHeader(
-          child: Text('Hello Guy!'),
+          child: Text('Oni Kingsmen Password Storage',
+              style: new TextStyle(fontSize: 25.0, color: Colors.white),
+          ),
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: Colors.green[900],
           ),
         ),
         ListTile(
-          title: Text('Accounts'),
+          title: Text('Accounts', style: new TextStyle(fontSize: 20.0)),
           onTap: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
@@ -223,7 +226,7 @@ Drawer createDrawer(BuildContext context) {
           },
         ),
         ListTile(
-          title: Text('Settings'),
+          title: Text('Settings', style: new TextStyle(fontSize: 20.0)),
           onTap: () {
             Navigator.of(context).pop();
             Navigator.push(
@@ -233,7 +236,7 @@ Drawer createDrawer(BuildContext context) {
           },
         ),
         ListTile(
-          title: Text('Log Out'),
+          title: Text('Log Out', style: new TextStyle(fontSize: 20.0)),
           onTap: () {
             onBackPressed(context);
           },
@@ -250,13 +253,14 @@ Drawer createPasswordDrawer(BuildContext context) {
       padding: EdgeInsets.zero,
       children: <Widget>[
         DrawerHeader(
-          child: Text('Hello Guy!'),
+          child: Text('Oni Kingsmen Password Storage',
+              style: new TextStyle(fontSize: 25.0, color: Colors.white)),
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: Colors.green[900],
           ),
         ),
         ListTile(
-          title: Text('Accounts'),
+          title: Text('Accounts', style: new TextStyle(fontSize: 20.0)),
           onTap: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
@@ -268,7 +272,7 @@ Drawer createPasswordDrawer(BuildContext context) {
           },
         ),
         ListTile(
-          title: Text('Settings'),
+          title: Text('Settings', style: new TextStyle(fontSize: 20.0)),
           onTap: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
@@ -279,7 +283,7 @@ Drawer createPasswordDrawer(BuildContext context) {
           },
         ),
         ListTile(
-          title: Text('Log Out'),
+          title: Text('Log Out', style: new TextStyle(fontSize: 20.0)),
           onTap: () {
             onBackPressed(context);
           },
@@ -312,74 +316,99 @@ class _SettingPageState extends State<SettingPage> {
   Widget build(BuildContext context) {
     // Scaffold is a layout for the major Material Components.
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              child: Text('Hello Guy!'),
-              decoration: BoxDecoration(
-                color: Colors.blue,
+        drawer: Drawer(
+          child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                child: Text('Oni Kingsmen Password Storage',
+                    style: new TextStyle(fontSize: 25.0, color: Colors.white)),
+                decoration: BoxDecoration(
+                  color: Colors.green[900],
+                ),
               ),
-            ),
-            ListTile(
-              title: Text('Accounts'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Settings'),
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            ListTile(
-              title: Text('Log Out'),
-              onTap: () {
-                onBackPressed(context);
-              },
-            ),
-          ],
+              ListTile(
+                title: Text('Accounts', style: new TextStyle(fontSize: 20.0)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
+                },
+              ),
+              ListTile(
+                title: Text('Settings', style: new TextStyle(fontSize: 20.0)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                title: Text('Log Out', style: new TextStyle(fontSize: 20.0)),
+                onTap: () {
+                  onBackPressed(context);
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-      appBar: AppBar(
-        title: Text('Settings Page'),
-      ),
-      // body is the majority of the screen.
-      body: Center(
-        child: RaisedButton(
-          onPressed: () {
-            if(questionList.length > 0){
-              createSecurityQuestion(context, null).then((answer) {
-                if (answer == true) {
+        appBar: AppBar(
+          title: Text('Settings Page'),
+        ),
+        // body is the majority of the screen.
+        body: Center(
+          child: ListView(shrinkWrap: true, children: <Widget>[
+            RaisedButton(
+              onPressed: () {
+                if (questionList.length > 0) {
+                  createSecurityQuestion(context, null).then((answer) {
+                    if (answer == true) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => OldQuestionsPage()),
+                      );
+                    } else {
+                      Fluttertoast.showToast(
+                          msg: "Incorrect Answer",
+                          toastLength: Toast.LENGTH_SHORT);
+                    }
+                  });
+                } else {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => OldQuestionsPage()),
                   );
-                } else {
-                  Fluttertoast.showToast(
-                      msg: "Incorrect Answer", toastLength: Toast.LENGTH_SHORT);
                 }
-              });
-            } else{
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => OldQuestionsPage()),
-              );
-            }
-          },
-          child: Text('Security Questions'),
-        ),
-      ),
-    );
+              },
+              child: Text('Security Questions',
+                  style: new TextStyle(fontSize: 25.0)),
+            ),
+            new Padding(padding: EdgeInsets.only(top: 20.0)),
+            RaisedButton(
+              onPressed: () {
+                createSecurityQuestion(context, null).then((answer) {
+                  if (answer == true) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditMasterPasswordPage()),
+                    );
+                  } else {
+                    Fluttertoast.showToast(
+                        msg: "Incorrect Answer",
+                        toastLength: Toast.LENGTH_SHORT);
+                  }
+                });
+              },
+              child: Text('Change Master Password',
+                  style: new TextStyle(fontSize: 25.0)),
+            ),
+          ]),
+        ));
   }
 }
 
@@ -404,16 +433,8 @@ class _SignInPageState extends State<SignInPage> {
     super.initState();
     _obscureConfirmText = true;
     _obscurePasswordText = true;
-    getData();
   }
 
-  Future getData() async {
-    var url = 'http://oni-kingsmen-site.000webhostapp.com/get.php';
-    http.Response response = await http.get(url);
-
-    var data = jsonDecode(response.body);
-    print(data.toString());
-  }
 
   Future register() async {
     setState(() {
@@ -517,8 +538,13 @@ class _SignInPageState extends State<SignInPage> {
     if (json != null) {
       print("not null");
       for (var password in json) {
-        createNewPassword(int.parse(password['id']), password['password'], password['username'],
-            password['email'], password['main'], password['notes']);
+        createNewPassword(
+            int.parse(password['id']),
+            password['password'],
+            password['username'],
+            password['email'],
+            password['main'],
+            password['notes']);
       }
       Navigator.push(
         context,
@@ -642,8 +668,7 @@ class _SignInPageState extends State<SignInPage> {
         new TextFormField(
             decoration: new InputDecoration(
               fillColor: Colors.white,
-              labelText:
-                  _signIn ? 'Username or Email' : 'New Username',
+              labelText: _signIn ? 'Username or Email' : 'New Username',
               border: new OutlineInputBorder(
                 borderRadius: new BorderRadius.circular(25.0),
                 borderSide: new BorderSide(),
@@ -654,13 +679,18 @@ class _SignInPageState extends State<SignInPage> {
               formData['username'] = username;
             },
             validator: (username) {
-              if (username.length <= 0) {
-                return "Please enter a username.";
-              }
-              if (!_signIn &&
+              if (username.length < 6) {
+                return "Username length should be minimum 6 characters.";
+              } else if (username.length > 30) {
+                return "Username maximum length: 30 characters.";
+              } else if (!_signIn &&
                   RegExp(r"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?")
                       .hasMatch(username)) {
                 return 'Username cannot follow email format.';
+              } else if (!_signIn &&
+                  !RegExp(r"^[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$")
+                      .hasMatch(username)) {
+                return 'Invalid Username';
               }
               return null;
             }),
@@ -713,10 +743,10 @@ class _SignInPageState extends State<SignInPage> {
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
           controller: _passwordcontroller,
+          enableSuggestions: false,
+          autocorrect: false,
           decoration: new InputDecoration(
-            labelText: _signIn
-                ? 'Master Password'
-                : 'New Master Password',
+            labelText: _signIn ? 'Master Password' : 'New Master Password',
             fillColor: Colors.white,
             border: new OutlineInputBorder(
               borderRadius: new BorderRadius.circular(25.0),
@@ -738,8 +768,19 @@ class _SignInPageState extends State<SignInPage> {
           onSaved: (password) {
             formData['password'] = password;
           },
-          validator: (password) =>
-              password.length > 0 ? null : "Please enter a password.",
+          validator: (password) {
+            if(!_signIn && password.length < 8) {
+              return "Master Password length should be at least 8 characters.";
+            } else if(password.length > 128) {
+              return "Master Password length should be at least 8 characters.";
+            }  else if (!_signIn && !RegExp(
+                r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$").hasMatch(password)) {
+              return 'Master Password should contain at least:\n1 Uppercase Letter\n1 Lowercase Letter\n1 Numerical Digit';
+            } else if(password.contains(RegExp(r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])'))){
+              return 'Password contains Invalid Characters';
+            }
+            else return null;
+          }
           //password == masterPassword ? null : 'Incorrect Master Password',
         )
       ],
@@ -814,11 +855,13 @@ class _SignInPageState extends State<SignInPage> {
 
   void _submitForm() {
     print('Submitting form');
+    _usernamecontroller.text = _usernamecontroller.text.trim();
+    _passwordcontroller.text = _passwordcontroller.text.trim();
+    _emailcontroller.text = _emailcontroller.text.trim();
+    _confirmcontroller.text = _confirmcontroller.text.trim();
     if (_formKey.currentState.validate()) {
-      _usernamecontroller.text = _usernamecontroller.text.trim().toLowerCase();
-      _passwordcontroller.text = _passwordcontroller.text.trim();
-      _emailcontroller.text = _emailcontroller.text.trim().toLowerCase();
-      _confirmcontroller.text = _confirmcontroller.text.trim();
+      _usernamecontroller.text = _usernamecontroller.text.toLowerCase();
+      _emailcontroller.text = _emailcontroller.text.toLowerCase();
       _formKey.currentState.save(); //onSaved is called!
       print(formData);
       if (!_signIn) {
@@ -1008,11 +1051,15 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
           controller: _notesController,
           maxLines: null,
           maxLength: 250,
-          buildCounter: (context, {currentLength, maxLength, isFocused}) => Padding(
+          buildCounter: (context, {currentLength, maxLength, isFocused}) =>
+              Padding(
             padding: const EdgeInsets.only(left: 16.0),
             child: Container(
                 alignment: Alignment.topRight,
-                child: Text("Notes Character Count: " + currentLength.toString() + "/" + maxLength.toString())),
+                child: Text("Notes Character Count: " +
+                    currentLength.toString() +
+                    "/" +
+                    maxLength.toString())),
           ),
           decoration: new InputDecoration(
             fillColor: Colors.white,
@@ -1122,7 +1169,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     } else if (jsonDecode(res.body).toString().contains(RegExp(r"a-zA-Z"))) {
       Fluttertoast.showToast(
           msg: "Failed to create password.", toastLength: Toast.LENGTH_SHORT);
-    }else {
+    } else {
       int id = int.parse(jsonDecode(res.body));
       Fluttertoast.showToast(
           msg: "New Password Added", toastLength: Toast.LENGTH_SHORT);
@@ -1252,12 +1299,12 @@ class _QuestionPageState extends State<QuestionPage> {
           builder: (context) {
             return AlertDialog(
               title: Text(
-                  'Are you sure you want to delete this Security Question?', style: TextStyle(color: Colors.red)),
+                  'Are you sure you want to delete this Security Question?',
+                  style: TextStyle(color: Colors.red)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(question.question,
-                      style: new TextStyle(fontSize: 20.0)),
+                  Text(question.question, style: new TextStyle(fontSize: 20.0)),
                   Padding(padding: EdgeInsets.only(top: 10.0)),
                   Text("Type 'delete' to confirm."),
                   TextField(
@@ -1273,7 +1320,8 @@ class _QuestionPageState extends State<QuestionPage> {
                         _deleteQuestion();
                       } else {
                         Fluttertoast.showToast(
-                            msg: "You must type 'delete' to confirm deletion.", toastLength: Toast.LENGTH_SHORT);
+                            msg: "You must type 'delete' to confirm deletion.",
+                            toastLength: Toast.LENGTH_SHORT);
                         Navigator.pop(context);
                       }
                       _controller.text = '';
@@ -1293,9 +1341,7 @@ class _QuestionPageState extends State<QuestionPage> {
     });
 
     var url = 'http://oni-kingsmen-site.000webhostapp.com/deletequestion.php';
-    var data = {
-      'id': question.id.toString()
-    };
+    var data = {'id': question.id.toString()};
 
     var res = await http.post(url, body: data);
     print("JSONRES: " + jsonDecode(res.body));
@@ -1501,7 +1547,8 @@ class _QuestionPageState extends State<QuestionPage> {
 
     var res = await http.post(url, body: data);
 
-    if (questionList.any((element) => element.question == _questionController.text.trim())) {
+    if (questionList.any(
+        (element) => element.question == _questionController.text.trim())) {
       Fluttertoast.showToast(
           msg: "Given Question already exists.",
           toastLength: Toast.LENGTH_SHORT);
@@ -1547,13 +1594,16 @@ class _QuestionPageState extends State<QuestionPage> {
 
     var res = await http.post(url, body: data);
     print(jsonDecode(res.body));
-    if (questionList.any((element) => element.id != question.id && element.question == _questionController.text.trim())) {
+    if (questionList.any((element) =>
+        element.id != question.id &&
+        element.question == _questionController.text.trim())) {
       Fluttertoast.showToast(
           msg: "Given Question already exists.",
           toastLength: Toast.LENGTH_SHORT);
     } else if (jsonDecode(res.body) == 'no') {
       Fluttertoast.showToast(
-          msg: "Failed to edit question. Please try again later.", toastLength: Toast.LENGTH_SHORT);
+          msg: "Failed to edit question. Please try again later.",
+          toastLength: Toast.LENGTH_SHORT);
     } else if (jsonDecode(res.body) == 'true') {
       Fluttertoast.showToast(
           msg: "Security Question Edited", toastLength: Toast.LENGTH_SHORT);
@@ -1775,9 +1825,7 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
     });
 
     var url = 'http://oni-kingsmen-site.000webhostapp.com/deletepassword.php';
-    var data = {
-      'id': password.id.toString()
-    };
+    var data = {'id': password.id.toString()};
 
     var res = await http.post(url, body: data);
     print("JSONRES: " + jsonDecode(res.body));
@@ -1826,11 +1874,11 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
       body: ListView(
         children: [
           ListTile(
-            title: Text("Account:",style: TextStyle(fontSize: 20.0)),
+            title: Text("Account:", style: TextStyle(fontSize: 20.0)),
             subtitle: Text(password.account),
           ),
           ListTile(
-            title: Text("Password:",style: TextStyle(fontSize: 20.0)),
+            title: Text("Password:", style: TextStyle(fontSize: 20.0)),
             subtitle: TextField(
               readOnly: true,
               controller: _passwordController,
@@ -1860,11 +1908,11 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
                 }
               }),
           ListTile(
-            title: Text("Email:",style: TextStyle(fontSize: 20.0)),
+            title: Text("Email:", style: TextStyle(fontSize: 20.0)),
             subtitle: Text(password.email),
           ),
           ListTile(
-            title: Text("Notes:",style: TextStyle(fontSize: 20.0)),
+            title: Text("Notes:", style: TextStyle(fontSize: 20.0)),
             subtitle: TextFormField(
               controller: _notesController,
               readOnly: true,
@@ -1881,7 +1929,8 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
                     builder: (context) {
                       return AlertDialog(
                         title: Text(
-                            'Are you sure you want to delete this Password?', style: TextStyle(color: Colors.red)),
+                            'Are you sure you want to delete this Password?',
+                            style: TextStyle(color: Colors.red)),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -1903,7 +1952,9 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
                                   _deletePassword();
                                 } else {
                                   Fluttertoast.showToast(
-                                      msg: "You must type 'delete' to confirm deletion.", toastLength: Toast.LENGTH_SHORT);
+                                      msg:
+                                          "You must type 'delete' to confirm deletion.",
+                                      toastLength: Toast.LENGTH_SHORT);
                                   Navigator.pop(context);
                                 }
                               })
@@ -1942,5 +1993,263 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
         },
       ),
     );
+  }
+}
+
+class EditMasterPasswordPage extends StatefulWidget {
+  @override
+  _EditMasterPasswordPageState createState() => _EditMasterPasswordPageState();
+}
+
+class _EditMasterPasswordPageState extends State<EditMasterPasswordPage> {
+  final _formKey = GlobalKey<FormState>();
+  bool processing = false;
+
+  final Map<String, dynamic> formData = {
+    'newpassword': null,
+    'confirmpassword': null,
+    'oldpassword': null,
+  };
+
+  @override
+  void initState() {
+    _oldPassObs = true;
+    _newPassObs = true;
+    _confirmPassObs = true;
+    super.initState();
+  }
+
+  bool _oldPassObs;
+  TextEditingController _oldPassController = new TextEditingController();
+
+  Widget _buildOldPasswordField() {
+    return Column(
+      children: [
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Old Master Password:', style: new TextStyle(fontSize: 20.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
+        new TextFormField(
+            controller: _oldPassController,
+            decoration: new InputDecoration(
+              labelText: 'Old Master Password',
+              fillColor: Colors.white,
+              border: new OutlineInputBorder(
+                borderRadius: new BorderRadius.circular(25.0),
+                borderSide: new BorderSide(),
+              ),
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _oldPassObs = !_oldPassObs;
+                  });
+                },
+                child:
+                    Icon(_oldPassObs ? Icons.visibility : Icons.visibility_off),
+              ),
+            ),
+            obscureText: _oldPassObs,
+            onSaved: (oldpass) {
+              formData['oldpassword'] = oldpass;
+            },
+            validator: (oldpass) {
+              if (oldpass.length < 8) {
+                return 'Master Password length must be at least 8 characters.';
+              } else if (oldpass.length > 128) {
+                return 'Max Password Size: 128';
+              }
+              return null;
+            }),
+      ],
+    );
+  }
+
+  bool _newPassObs;
+  TextEditingController _newPassController = new TextEditingController();
+
+  Widget _buildNewPasswordField() {
+    return Column(
+      children: [
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('New Master Password:', style: new TextStyle(fontSize: 20.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
+        new TextFormField(
+            controller: _newPassController,
+            decoration: new InputDecoration(
+              labelText: 'New Master Password',
+              fillColor: Colors.white,
+              border: new OutlineInputBorder(
+                borderRadius: new BorderRadius.circular(25.0),
+                borderSide: new BorderSide(),
+              ),
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _newPassObs = !_newPassObs;
+                  });
+                },
+                child:
+                    Icon(_newPassObs ? Icons.visibility : Icons.visibility_off),
+              ),
+            ),
+            obscureText: _newPassObs,
+            onSaved: (newpassword) {
+              formData['newpassword'] = newpassword;
+            },
+            validator: (newpassword) {
+              if(newpassword.length < 8) {
+                return "Master Password length should be at least 8 characters.";
+              } else if(newpassword.length > 128) {
+                return "Master Password length should be at least 8 characters.";
+              }  else if (!RegExp(
+                  r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$").hasMatch(newpassword)) {
+                return 'Master Password should contain:\n1 Uppercase Letter\n1 Lowercase Letter\n1 Number.';
+              } else if(newpassword.contains(RegExp(r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])'))){
+                return 'Password contains Invalid Characters';
+              }
+              else return null;
+            }),
+      ],
+    );
+  }
+
+  bool _confirmPassObs;
+  TextEditingController _confirmPassController = new TextEditingController();
+
+  Widget _buildConfirmPasswordField() {
+    return Column(
+      children: [
+        new Padding(padding: EdgeInsets.only(top: 5.0)),
+        new Text('Confirm New Master Password:',
+            style: new TextStyle(fontSize: 20.0)),
+        new Padding(padding: EdgeInsets.only(top: 2.5)),
+        new TextFormField(
+            controller: _confirmPassController,
+            decoration: new InputDecoration(
+              labelText: 'Confirm New Master Password',
+              fillColor: Colors.white,
+              border: new OutlineInputBorder(
+                borderRadius: new BorderRadius.circular(25.0),
+                borderSide: new BorderSide(),
+              ),
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _confirmPassObs = !_confirmPassObs;
+                  });
+                },
+                child: Icon(
+                    _confirmPassObs ? Icons.visibility : Icons.visibility_off),
+              ),
+            ),
+            obscureText: _confirmPassObs,
+            onSaved: (confirmpassword) {
+              formData['confirmpassword'] = confirmpassword;
+            },
+            validator: (confirmpassword) {
+              if (confirmpassword != _newPassController.text) {
+                return 'Passwords do not match.';
+              }
+              return null;
+            }),
+      ],
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    if (processing == false)
+      return RaisedButton(
+        onPressed: () {
+          _submitForm();
+        },
+        child: Text('Submit'),
+      );
+    else {
+      return CircularProgressIndicator(
+        backgroundColor: Colors.green,
+      );
+    }
+  }
+
+  void _submitForm() {
+    print('Submitting form');
+    _oldPassController.text = _oldPassController.text.trim();
+    _newPassController.text = _newPassController.text.trim();
+    _confirmPassController.text = _confirmPassController.text.trim();
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save(); //onSaved is called!
+      print(formData);
+      _editMasterPassword();
+    }
+  }
+
+  Widget _buildForm() {
+    return Form(
+        key: _formKey,
+        child: ListView(
+          children: <Widget>[
+            _buildOldPasswordField(),
+            _buildNewPasswordField(),
+            _buildConfirmPasswordField(),
+            _buildSubmitButton(),
+          ],
+        ));
+  }
+
+  Future _editMasterPassword() async {
+    setState(() {
+      processing = true;
+    });
+
+    var url =
+        'http://oni-kingsmen-site.000webhostapp.com/editmasterpassword.php';
+
+    var data = {
+      'id': userID.toString(),
+      'oldpass': _oldPassController.text.trim(),
+      'newpass': _newPassController.text.trim(),
+    };
+
+    var res = await http.post(url, body: data);
+    print(jsonDecode(res.body));
+    if (jsonDecode(res.body) == 'wrong') {
+      Fluttertoast.showToast(
+          msg: "Old Master Password is incorrect.",
+          toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'no') {
+      Fluttertoast.showToast(
+          msg: "Failed to edit master password. Please try again later.",
+          toastLength: Toast.LENGTH_SHORT);
+    } else if (jsonDecode(res.body) == 'true') {
+      Fluttertoast.showToast(
+          msg: "Master Password Edited", toastLength: Toast.LENGTH_SHORT);
+
+      _newPassController.text = '';
+      _confirmPassController.text = '';
+      _oldPassController.text = '';
+
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    } else {
+      Fluttertoast.showToast(
+          msg: "An error occurred. Try again later.",
+          toastLength: Toast.LENGTH_SHORT);
+    }
+
+    setState(() {
+      processing = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Scaffold is a layout for the major Material Components.
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('Edit Master Password'),
+        ),
+        drawer: createPasswordDrawer(context),
+        // body is the majority of the screen.
+        body: _buildForm());
   }
 }
