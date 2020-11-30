@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
@@ -103,8 +105,9 @@ Future<bool> createSecurityQuestion(BuildContext context, Question question) {
 
   AlertDialog _withQuestion() {
     return AlertDialog(
-      title: Text(question.question),
+      title: Text(question.caseSensitive ? question.question+(" (Case Sensitive)") : question.question),
       content: TextField(
+        keyboardType: TextInputType.visiblePassword,
         controller: _controller,
       ),
       actions: <Widget>[
@@ -135,8 +138,9 @@ Future<bool> createSecurityQuestion(BuildContext context, Question question) {
     var rng = new Random();
     int chosenNum = rng.nextInt(questionList.length);
     return AlertDialog(
-      title: Text(questionList[chosenNum].question),
+      title: Text(questionList[chosenNum].caseSensitive ? questionList[chosenNum].question + " (Case Sensitive)" : questionList[chosenNum].question),
       content: TextField(
+        keyboardType: TextInputType.emailAddress,
         controller: _controller,
       ),
       actions: <Widget>[
@@ -215,7 +219,7 @@ Drawer createDrawer(BuildContext context) {
           ),
         ),
         ListTile(
-          title: Text('Accounts', style: new TextStyle(fontSize: 20.0)),
+          title: Text('Home Page', style: new TextStyle(fontSize: 20.0)),
           onTap: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
@@ -260,7 +264,7 @@ Drawer createPasswordDrawer(BuildContext context) {
           ),
         ),
         ListTile(
-          title: Text('Accounts', style: new TextStyle(fontSize: 20.0)),
+          title: Text('Home Page', style: new TextStyle(fontSize: 20.0)),
           onTap: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
@@ -329,7 +333,7 @@ class _SettingPageState extends State<SettingPage> {
                 ),
               ),
               ListTile(
-                title: Text('Accounts', style: new TextStyle(fontSize: 20.0)),
+                title: Text('Home Page', style: new TextStyle(fontSize: 20.0)),
                 onTap: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
@@ -713,6 +717,7 @@ class _SignInPageState extends State<SignInPage> {
               borderSide: new BorderSide(),
             ),
           ),
+          keyboardType: TextInputType.emailAddress,
           controller: _emailcontroller,
           onSaved: (email) {
             formData['email'] = email;
@@ -770,12 +775,12 @@ class _SignInPageState extends State<SignInPage> {
           },
           validator: (password) {
             if(!_signIn && password.length < 8) {
-              return "Master Password length should be at least 8 characters.";
+              return 'Master Password should contain at least:\n8 Characters\n1 Uppercase Letter\n1 Lowercase Letter\n1 Numerical Digit';
             } else if(password.length > 128) {
-              return "Master Password length should be at least 8 characters.";
+              return "Max Password length: 128 characters.";
             }  else if (!_signIn && !RegExp(
                 r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$").hasMatch(password)) {
-              return 'Master Password should contain at least:\n1 Uppercase Letter\n1 Lowercase Letter\n1 Numerical Digit';
+              return 'Master Password should contain at least:\n8 Characters\n1 Uppercase Letter\n1 Lowercase Letter\n1 Numerical Digit';
             } else if(password.contains(RegExp(r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])'))){
               return 'Password contains Invalid Characters';
             }
@@ -989,6 +994,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         new Text('Email (Optional):', style: new TextStyle(fontSize: 20.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
+          keyboardType: TextInputType.emailAddress,
           controller: _emailController,
           decoration: new InputDecoration(
             labelText: 'Email (Optional)',
@@ -1301,11 +1307,12 @@ class _QuestionPageState extends State<QuestionPage> {
               title: Text(
                   'Are you sure you want to delete this Security Question?',
                   style: TextStyle(color: Colors.red)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
+              content: ListView(
+                //mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(question.question, style: new TextStyle(fontSize: 20.0)),
-                  Padding(padding: EdgeInsets.only(top: 10.0)),
+                  Padding(padding: EdgeInsets.only(top: 18.0)),
+                  Text(question.question, style: new TextStyle(fontSize: 20.0),textAlign: TextAlign.center),
+                  Padding(padding: EdgeInsets.only(top: 20.0)),
                   Text("Type 'delete' to confirm."),
                   TextField(
                     controller: _controller,
@@ -1405,6 +1412,7 @@ class _QuestionPageState extends State<QuestionPage> {
         new Text('Answer:', style: new TextStyle(fontSize: 20.0)),
         new Padding(padding: EdgeInsets.only(top: 2.5)),
         new TextFormField(
+          keyboardType: TextInputType.visiblePassword,
             controller: _answerController,
             decoration: new InputDecoration(
               labelText: 'Answer',
@@ -1488,10 +1496,51 @@ class _QuestionPageState extends State<QuestionPage> {
   }
 
   Widget _buildSubmitButton() {
+
+    Future<bool> _onSumbit(BuildContext context) async {
+      return showDialog(
+        context: context,
+        builder: (context) => new AlertDialog(
+          title: new Text(question == null? 'New Question:' : 'Edit Question:'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(padding: EdgeInsets.only(top: 18.0)),
+              Text(_questionController.text,
+                  style: new TextStyle(fontSize: 20.0),textAlign: TextAlign.center),
+              Padding(padding: EdgeInsets.only(top: 18.0)),
+              Text("Answer: ",
+                  style: new TextStyle(fontSize: 15.0),textAlign: TextAlign.center),
+              Text("\""+_answerController.text.trim() +"\"",
+                  style: new TextStyle(fontSize: 10.0),textAlign: TextAlign.center),
+              Padding(padding: EdgeInsets.only(top: 18.0)),
+              Text("Are you sure you want to continue?",
+                  style: new TextStyle(fontSize: 20.0),textAlign: TextAlign.center),
+            ],
+          ),
+          actions: <Widget>[
+            new GestureDetector(
+              onTap: () => Navigator.of(context).pop(false),
+              child: Text("NO"),
+            ),
+            SizedBox(height: 16),
+            new GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop(true);
+                _submitForm();
+              },
+              child: Text("YES"),
+            )
+          ],
+        ),
+      ) ??
+          false;
+    }
+
     if (processing == false)
       return RaisedButton(
         onPressed: () {
-          _submitForm();
+          _onSumbit(context);
         },
         child: Text('Submit'),
       );
@@ -1931,13 +1980,14 @@ class _OldPasswordPageState extends State<OldPasswordPage> {
                         title: Text(
                             'Are you sure you want to delete this Password?',
                             style: TextStyle(color: Colors.red)),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
+                        content: ListView(
+                          //mainAxisSize: MainAxisSize.min,
                           children: [
+                            Padding(padding: EdgeInsets.only(top: 18.0)),
                             Text(password.main,
-                                style: new TextStyle(fontSize: 20.0)),
-                            Text(password.account),
-                            Padding(padding: EdgeInsets.only(top: 15.0)),
+                                style: new TextStyle(fontSize: 20.0),textAlign: TextAlign.center),
+                            Text(password.account,style: new TextStyle(fontSize: 14.0),textAlign: TextAlign.center),
+                            Padding(padding: EdgeInsets.only(top: 20.0)),
                             Text("Type 'delete' to confirm."),
                             TextField(
                               controller: _controller,

@@ -21,7 +21,7 @@ Future<String> passwordGeneratorPopup(BuildContext context) {
   Widget _buildSizeField() {
     return Column(
       children: [
-        new Text('Password Size', style: new TextStyle(fontSize: 12.0)),
+        new Text('Password Size', style: new TextStyle(fontSize: 18.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
             keyboardType: TextInputType.number,
@@ -68,7 +68,7 @@ Future<String> passwordGeneratorPopup(BuildContext context) {
   Widget _buildNumberCountField() {
     return Column(
       children: [
-        new Text('# of Numerical Digits', style: new TextStyle(fontSize: 12.0)),
+        new Text('# of Numerical Digits', style: new TextStyle(fontSize: 18.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
             controller: numController,
@@ -103,7 +103,7 @@ Future<String> passwordGeneratorPopup(BuildContext context) {
   Widget _buildSymbolCountField() {
     return Column(
       children: [
-        new Text('# of Symbols', style: new TextStyle(fontSize: 12.0)),
+        new Text('# of Symbols', style: new TextStyle(fontSize: 18.0)),
         new Padding(padding: EdgeInsets.only(top: 5.0)),
         new TextFormField(
             controller: symController,
@@ -138,11 +138,14 @@ Future<String> passwordGeneratorPopup(BuildContext context) {
   Widget _buildForm() {
     return Form(
         key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
+          // mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            new Padding(padding: EdgeInsets.only(top: 15.0)),
             _buildSizeField(),
+            new Padding(padding: EdgeInsets.only(top: 15.0)),
             _buildNumberCountField(),
+            new Padding(padding: EdgeInsets.only(top: 15.0)),
             _buildSymbolCountField(),
           ],
         ));
